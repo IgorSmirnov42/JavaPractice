@@ -1,34 +1,42 @@
 package ru.spbhse.hashmap;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class HashMapTest {
 
-    @Test
-    public void sizeTotalTest() {
-        HashMap table = new HashMap();
+    private HashMap test;
 
-        assertEquals(0, table.size());
-
-        table.put("aba", null);
-        assertEquals(1, table.size());
-
-        table.put("caba", null);
-        assertEquals(2, table.size());
-
-        table.put("aba", null);
-        assertEquals(2, table.size());
-
-        table.clear();
-        assertEquals(0, table.size());
+    @BeforeEach
+    void init() {
+        test = new HashMap();
     }
 
     @Test
-    public void containsShouldBeTrue() {
-        HashMap test = new HashMap();
+    public void sizeTotalTest() {
+        assertEquals(0, test.size());
 
+        test.put("aba", null);
+        assertEquals(1, test.size());
+
+        test.put("caba", null);
+        assertEquals(2, test.size());
+
+        test.put("aba", null);
+        assertEquals(2, test.size());
+
+        test.clear();
+        assertEquals(0, test.size());
+    }
+
+    @Test
+    public void containsShouldBeTrueWhenElementContains() {
         test.put("aa", null);
         assertTrue(test.contains("aa"));
 
@@ -37,9 +45,12 @@ public class HashMapTest {
     }
 
     @Test
-    public void containsShouldBeFalse() {
-        HashMap test = new HashMap();
+    public void containsCheckThrows() {
+        assertThrows(IllegalArgumentException.class, () -> test.contains(null));
+    }
 
+    @Test
+    public void containsShouldBeFalseWhenElementNotContains() {
         assertFalse(test.contains("aa"));
 
         test.put("aa", null);
@@ -47,9 +58,12 @@ public class HashMapTest {
     }
 
     @Test
-    public void getTotalTest() {
-        HashMap test = new HashMap();
+    public void getCheckThrows() {
+        assertThrows(IllegalArgumentException.class, () -> test.get(null));
+    }
 
+    @Test
+    public void getTotalTest() {
         test.put("aa", "bb");
         assertEquals("bb", test.get("aa"));
 
@@ -57,9 +71,12 @@ public class HashMapTest {
     }
 
     @Test
-    public void putSimpleTests() {
-        HashMap test = new HashMap();
+    public void putCheckThrows() {
+        assertThrows(IllegalArgumentException.class, () -> test.put(null, "Aa"));
+    }
 
+    @Test
+    public void putSimpleTests() {
         assertNull(test.put("aa", "bb"));
         assertEquals(1, test.size());
 
@@ -69,8 +86,6 @@ public class HashMapTest {
 
     @Test
     public void putSameKeys() {
-        HashMap test = new HashMap();
-
         assertNull(test.put("aa", "bb"));
         assertEquals("bb", test.get("aa"));
 
@@ -80,8 +95,12 @@ public class HashMapTest {
     }
 
     @Test
+    public void removeCheckThrows() {
+        assertThrows(IllegalArgumentException.class, () -> test.remove(null));
+    }
+
+    @Test
     public void removeSimpleTests() {
-        HashMap test = new HashMap();
         test.put("aa", "bb");
         test.put("ab", "bc");
 
@@ -96,8 +115,6 @@ public class HashMapTest {
 
     @Test
     public void removeNotExisting() {
-        HashMap test = new HashMap();
-
         test.put("aa", "bb");
         assertEquals("bb", test.remove("aa"));
         assertNull(test.remove("aa"));
@@ -107,8 +124,6 @@ public class HashMapTest {
 
     @Test
     public void clearTest() {
-        HashMap test = new HashMap();
-
         test.put("aa", "bb");
         test.put("ab", "cd");
 
@@ -118,8 +133,6 @@ public class HashMapTest {
 
     @Test
     public void removeSameHashCode() {
-        HashMap test = new HashMap();
-
         test.put("FB", "aa");
         test.put("Ea", "bb");
 
@@ -135,8 +148,6 @@ public class HashMapTest {
 
     @Test
     public void putSameHashCode() {
-        HashMap test = new HashMap();
-
         assertNull(test.put("FB", "aa"));
         assertNull(test.put("Ea", "bb"));
         assertEquals(2, test.size());
@@ -144,8 +155,6 @@ public class HashMapTest {
 
     @Test
     public void getSameHashCode() {
-        HashMap test = new HashMap();
-
         test.put("FB", "aa");
         test.put("Ea", "bb");
 
@@ -156,7 +165,6 @@ public class HashMapTest {
     @Test
     public void manyPuts() {
         // Need to test reallocate
-        HashMap test = new HashMap();
         for (Integer i = 0; i < 100; i++) {
             test.put(i.toString(), null);
         }
