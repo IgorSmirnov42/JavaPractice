@@ -79,7 +79,7 @@ public class List {
         return content;
     }
 
-    private class ListElement {
+    private static class ListElement {
 
         private StringPair element;
         private ListElement next;
