@@ -1,5 +1,8 @@
 package ru.spbhse.hashmap;
 
+/**
+ * Class to store pairs of Strings. First element named key, second value
+ */
 public class StringPair {
 
     private String key;

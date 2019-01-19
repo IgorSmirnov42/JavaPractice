@@ -79,6 +79,9 @@ public class List {
         return content;
     }
 
+    /**
+     * Class to store elements of list with pointers on next element
+     */
     private static class ListElement {
 
         private StringPair element;

@@ -102,12 +102,12 @@ public class HashMap {
 
     /** Builds new HashMap with greater size */
     private void reallocate() {
-        StringPair[] allContent = new StringPair[size];
+        var allContent = new StringPair[size];
 
-        int ptr = 0;
+        int listElementPointer = 0;
         for (List bucket : buckets) {
             for (StringPair pair : bucket.toArray()) {
-                allContent[ptr++] = pair;
+                allContent[listElementPointer++] = pair;
             }
         }
 

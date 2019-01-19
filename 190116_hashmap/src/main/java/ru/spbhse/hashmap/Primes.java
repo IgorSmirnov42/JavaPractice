@@ -1,7 +1,11 @@
 package ru.spbhse.hashmap;
 
+/**
+ * Serving class with methods to work with prime numbers
+ */
 public class Primes {
     /**
+     * Generates prime number not less than given number (may be not prime)
      * @param n given number (must be not less 2)
      * @return closest not less prime to given number
      */
