@@ -23,6 +23,9 @@ public class Trie implements Serializable {
      * @return true if this element was not presented in a trie, false otherwise
      */
     public boolean add(String element) {
+        if (element == null) {
+            throw new IllegalArgumentException("Trie.add got null as element. It is forbidden.");
+        }
         return addStartFrom(element, 0);
     }
 
@@ -58,6 +61,9 @@ public class Trie implements Serializable {
 
     /** Returns true iff element is in trie */
     public boolean contains(String element) {
+        if (element == null) {
+            throw new IllegalArgumentException("Trie.contains got null as element. It is forbidden.");
+        }
         Trie prefixNode = goDownPrefix(element);
         return prefixNode != null && prefixNode.isTerminal;
     }
@@ -67,6 +73,9 @@ public class Trie implements Serializable {
      * @return true iff given element was presented in a trie
      */
     public boolean remove(String element) {
+        if (element == null) {
+            throw new IllegalArgumentException("Trie.remove got null as element. It is forbidden.");
+        }
         return removeStartFrom(element, 0);
     }
 
@@ -111,11 +120,14 @@ public class Trie implements Serializable {
 
     /** Returns number of strings in a trie that start with given prefix */
     public int howManyStartsWithPrefix(String prefix) {
+        if (prefix == null) {
+            throw new IllegalArgumentException("Trie.howManyStartsWithPrefix got null as prefix. It is forbidden.");
+        }
         Trie prefixNode = goDownPrefix(prefix);
         return prefixNode == null ? 0 : prefixNode.size;
     }
 
-    /** Returns Node appropriated to given prefix (and null if it doesn't exist */
+    /** Returns Node appropriated to given prefix (and null if it doesn't exist) */
     private Trie goDownPrefix(String prefix) {
         Trie currentNode = this;
         for (char c : prefix.toCharArray()) {
