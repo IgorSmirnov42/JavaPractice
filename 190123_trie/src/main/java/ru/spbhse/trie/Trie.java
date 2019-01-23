@@ -16,7 +16,7 @@ public class Trie implements Serializable {
      * @return true if this element was not presented in a trie, false otherwise
      */
     public boolean add(String element) {
-        return false;
+        return true;
     }
 
     /** Returns true iff element is in trie */
