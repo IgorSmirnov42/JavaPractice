@@ -1,13 +1,12 @@
 package ru.spbhse.trie;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class realizing data structure Trie to store set of Unicode strings
- * Implemented using Hashtable
+ * Implemented using HashMap
  */
 public class Trie implements Serializable {
     private int size;
@@ -106,7 +105,7 @@ public class Trie implements Serializable {
         if (wasInTrie) {
             --size;
             if (removingNode.size == 0) {
-                nextNode.put(currentChar, null);
+                nextNode.remove(currentChar);
             }
         }
 
@@ -127,7 +126,7 @@ public class Trie implements Serializable {
         return prefixNode == null ? 0 : prefixNode.size;
     }
 
-    /** Returns Node appropriated to given prefix (and null if it doesn't exist) */
+    /** Returns Node appropriated to given prefix and null if it doesn't exist */
     private Trie goDownPrefix(String prefix) {
         Trie currentNode = this;
         for (char c : prefix.toCharArray()) {
@@ -142,13 +141,74 @@ public class Trie implements Serializable {
         return currentNode;
     }
 
+    /**
+     * Converts Trie to sequence of bytes and writes it to given OutputStream
+     * Format:
+     * 1. Number of children of current node (int)
+     * 2. For every child of node symbol leading to it (char) and serialization with same format
+     * 3. Terminal flag (boolean)
+     */
     @Override
     public void serialize(OutputStream out) throws IOException {
-
+        try (var dataOut = new DataOutputStream(out)) {
+            dataOut.writeInt(nextNode.size());
+            for (char key : nextNode.keySet()) {
+                dataOut.writeChar(key);
+                nextNode.get(key).serialize(out);
+            }
+            dataOut.writeBoolean(isTerminal);
+        }
     }
 
+    /** Replaces old trie with new one from stream */
     @Override
     public void deserialize(InputStream in) throws IOException {
+        size = 0;
+        nextNode.clear();
 
+        try (var dataIn = new DataInputStream(in)) {
+            int nextNodeSize = dataIn.readInt();
+
+            for (int currentSymbol = 0; currentSymbol < nextNodeSize; currentSymbol++) {
+                char symbol = dataIn.readChar();
+
+                var newNode = new Trie();
+                newNode.deserialize(in);
+
+                size += newNode.size;
+                nextNode.put(symbol, newNode);
+            }
+
+            isTerminal = dataIn.readBoolean();
+
+            if (isTerminal) {
+                ++size;
+            }
+        }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
