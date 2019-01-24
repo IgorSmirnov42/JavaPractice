@@ -186,6 +186,10 @@ public class Trie implements Serializable {
         }
     }
 
+    /**
+     * Checks if two Tries are equal
+     * Two Tries are equal if and only if they form same trees with same terminal nodes
+     */
     @Override
     public boolean equals(Object other) {
         if (other == null) {
