@@ -2,7 +2,6 @@ package ru.spbhse.trie;
 
 import java.io.*;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Class realizing data structure Trie to store set of Unicode strings
@@ -186,29 +185,37 @@ public class Trie implements Serializable {
             }
         }
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == null) {
+            return false;
+        }
+
+        if (this == other) {
+            return true;
+        }
+
+        if (!(other instanceof Trie)) {
+            return false;
+        }
+
+        var otherTrie = (Trie) other;
+
+        if (isTerminal != otherTrie.isTerminal) {
+            return false;
+        }
+
+        if (!nextNode.keySet().equals(otherTrie.nextNode.keySet())) {
+            return false;
+        }
+
+        for (char key : nextNode.keySet()) {
+            if (!nextNode.get(key).equals(otherTrie.nextNode.get(key))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
