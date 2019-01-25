@@ -143,16 +143,11 @@ class TrieTest {
     }
 
     @Test
-    void serializeAndDeserializeTotalTest() {
+    void serializeAndDeserializeTotalTest() throws IOException {
         testTrie1.add("aba");
         testTrie1.add("caba");
         testTrie1.add("abc");
 
-        /*
-        Do we need try in tests? If we have it and some failure with IO happened, test will
-        be passed, despite of the fact, test itself was not run. It seems, that crash is
-        more reasonable behavior in this situation.
-         */
         try (var out = new ByteArrayOutputStream()) {
             testTrie1.serialize(out);
 
@@ -165,9 +160,6 @@ class TrieTest {
                 assertEquals(testTrie1, testTrie2);
             }
 
-        } catch (IOException e) {
-            // I don't know a better way to process this exception here
-            e.printStackTrace();
         }
 
     }
