@@ -10,17 +10,16 @@ import java.util.Iterator;
  */
 public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
 
-    public static void main(String[] args) {
-        var testWithoutComparator = new TreeSet<>();
-        testWithoutComparator.add(1337);
-        testWithoutComparator.add(42);
-        testWithoutComparator.add(239);
-    }
-
-    private static class SplayTreeNode<E> {
-        private SplayTreeNode<E> parent;
-        private SplayTreeNode<E> left;
-        private SplayTreeNode<E> right;
+    // Not static because need to know about E
+    /*
+    Cannot be generic and static, because have to call methods that are in TreeSet class
+    If I move safeSetSon inside (to make class static) I wouldn't be able to call from TreeSet
+        like safeSetSon(a, b) (because function is not static), so I would have to have fictive node
+    */
+    private class SplayTreeNode {
+        private SplayTreeNode parent;
+        private SplayTreeNode left;
+        private SplayTreeNode right;
         final private E value;
 
         private SplayTreeNode(E value) {
@@ -33,32 +32,6 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
 
         private boolean hasParent() {
             return parent != null;
-        }
-
-        private static void safeSetSon(SplayTreeNode parentNode, SplayTreeNode childNode, boolean leftSon) {
-            if (parentNode != null) {
-                if (leftSon) {
-                    parentNode.left = childNode;
-                } else {
-                    parentNode.right = childNode;
-                }
-            }
-
-            if (childNode != null) {
-                childNode.parent = parentNode;
-            }
-        }
-
-        private static SplayTreeNode merge(SplayTreeNode leftTree, SplayTreeNode rightTree) {
-            if (leftTree == null) {
-                return rightTree;
-            }
-            if (rightTree == null) {
-                return leftTree;
-            }
-            SplayTreeNode newRoot = leftTree.last();
-            safeSetSon(newRoot, rightTree, false);
-            return newRoot;
         }
 
         private void leftRotate() {
@@ -107,7 +80,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             }
         }
 
-        private SplayTreeNode<E> first() {
+        private SplayTreeNode first() {
             if (left == null) {
                 splay();
                 return this;
@@ -115,7 +88,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             return left.first();
         }
 
-        private SplayTreeNode<E> last() {
+        private SplayTreeNode last() {
             if (right == null) {
                 splay();
                 return this;
@@ -123,12 +96,12 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             return right.last();
         }
 
-        private SplayTreeNode<E> previous() {
+        private SplayTreeNode previous() {
             if (left != null) {
                 return left.last();
             }
             if (parent != null) {
-                SplayTreeNode<E> parentSaved = parent;
+                SplayTreeNode parentSaved = parent;
                 parent.splay();
                 return parentSaved;
             }
@@ -136,7 +109,51 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
         }
     }
 
-    private SplayTreeNode<E> rootNode;
+    private void safeSetSon(SplayTreeNode parentNode, SplayTreeNode childNode, boolean leftSon) {
+        if (parentNode != null) {
+            if (leftSon) {
+                parentNode.left = childNode;
+            } else {
+                parentNode.right = childNode;
+            }
+        }
+
+        if (childNode != null) {
+            childNode.parent = parentNode;
+        }
+    }
+
+    private void safeDeleteParent(SplayTreeNode childNode) {
+        if (childNode == null) {
+            return;
+        }
+
+        if (childNode.hasParent()) {
+            if (childNode.isLeftSon()) {
+                childNode.parent.left = null;
+            } else {
+                childNode.parent.right = null;
+            }
+        }
+        childNode.parent = null;
+    }
+
+    private SplayTreeNode merge(SplayTreeNode leftTree, SplayTreeNode rightTree) {
+        safeDeleteParent(leftTree);
+        safeDeleteParent(rightTree);
+
+        if (leftTree == null) {
+            return rightTree;
+        }
+        if (rightTree == null) {
+            return leftTree;
+        }
+        SplayTreeNode newRoot = leftTree.last();
+        safeSetSon(newRoot, rightTree, false);
+        return newRoot;
+    }
+
+    private SplayTreeNode rootNode;
     final private Comparator<? super E> comparator;
     private int size;
 
@@ -169,10 +186,10 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      * Otherwise returns previous or next node
      * Returns null only if set is empty
      */
-    private SplayTreeNode<E> nearElement(Object element) {
+    private SplayTreeNode nearElement(Object element) {
         // TODO : element not null
-        SplayTreeNode<E> previousNode = null; //
-        SplayTreeNode<E> currentNode = rootNode;
+        SplayTreeNode previousNode = null; //
+        SplayTreeNode currentNode = rootNode;
         int compareResult;
         while (currentNode != null &&
                 (compareResult = compareElements(element, currentNode.value)) != 0) {
@@ -219,7 +236,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
 
     @Override
     public boolean contains(Object element) {
-        SplayTreeNode<E> foundNode = nearElement(element);
+        SplayTreeNode foundNode = nearElement(element);
         if (foundNode == null) {
             return false;
         }
@@ -232,7 +249,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             return false;
         }
 
-        SplayTreeNode<E> newNode = new SplayTreeNode<>(element);
+        SplayTreeNode newNode = new SplayTreeNode(element);
         ++size;
 
         if (rootNode == null) {
@@ -243,24 +260,38 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
         // element is least element => newNode becomes new root
         if (compareElements(rootNode.first().value, element) > 0) {
             rootNode.splay();
-            SplayTreeNode.safeSetSon(newNode, rootNode, false);
+            safeSetSon(newNode, rootNode, false);
             rootNode = newNode;
             return true;
         }
 
         rootNode.splay();
 
-        SplayTreeNode<E> foundNode = nearElement(element);
+        SplayTreeNode foundNode = nearElement(element);
 
         // Previous node is guaranteed to exist
         if (compareElements(element, foundNode.value) < 0) {
             foundNode = foundNode.previous();
         }
 
-        SplayTreeNode.safeSetSon(newNode, foundNode.right, false);
-        SplayTreeNode.safeSetSon(foundNode, newNode, false);
+        safeSetSon(newNode, foundNode.right, false);
+        safeSetSon(foundNode, newNode, false);
         rootNode = foundNode;
 
+        return true;
+    }
+
+    @Override
+    public boolean remove(Object element) {
+        if (!contains(element)) {
+            return false;
+        }
+
+        --size;
+        SplayTreeNode foundNode = nearElement(element);
+
+        // After nearElement() this node is already root => we have to merge root's children
+        rootNode = merge(foundNode.left, foundNode.right);
         return true;
     }
 
@@ -296,7 +327,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             return null;
         }
 
-        SplayTreeNode<E> nearNode = nearElement(e);
+        SplayTreeNode nearNode = nearElement(e);
         int compareResult = compareElements(e, nearNode.value);
 
         if (compareResult > 0) {
@@ -322,7 +353,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             return null;
         }
 
-        SplayTreeNode<E> nearNode = nearElement(e);
+        SplayTreeNode nearNode = nearElement(e);
         int compareResult = compareElements(e, nearNode.value);
 
         if (compareResult >= 0) {
@@ -348,7 +379,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             return null;
         }
 
-        SplayTreeNode<E> nearNode = nearElement(e);
+        SplayTreeNode nearNode = nearElement(e);
         int compareResult = compareElements(e, nearNode.value);
 
         if (compareResult <= 0) {
@@ -374,7 +405,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             return null;
         }
 
-        SplayTreeNode<E> nearNode = nearElement(e);
+        SplayTreeNode nearNode = nearElement(e);
         int compareResult = compareElements(e, nearNode.value);
 
         if (compareResult < 0) {

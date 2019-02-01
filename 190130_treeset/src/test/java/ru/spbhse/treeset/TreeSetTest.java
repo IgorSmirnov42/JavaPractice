@@ -33,6 +33,24 @@ class TreeSetTest {
 
     @Test
     void contains() {
+        assertFalse(testWithoutComparator.contains(42));
+        testWithoutComparator.add(42);
+        assertTrue(testWithoutComparator.contains(42));
+        testWithoutComparator.add(23);
+        assertTrue(testWithoutComparator.contains(23));
+        testWithoutComparator.remove(42);
+        assertFalse(testWithoutComparator.contains(42));
+    }
+
+    @Test
+    void remove() {
+        assertFalse(testWithoutComparator.contains(42));
+        testWithoutComparator.add(42);
+        testWithoutComparator.add(55);
+        testWithoutComparator.add(878);
+        assertTrue(testWithoutComparator.remove(55));
+        assertTrue(testWithoutComparator.remove(878));
+        assertTrue(testWithoutComparator.remove(42));
     }
 
     @Test
@@ -59,11 +77,13 @@ class TreeSetTest {
         assertTrue(testWithoutComparator.contains(21));
         assertTrue(testWithoutComparator.add(239));
         assertTrue(testWithoutComparator.contains(239));
+        assertFalse(testWithoutComparator.add(42));
         // TODO
     }
 
     @Test
     void first() {
+        assertNull(testWithoutComparator.first());
         testWithoutComparator.add(1337);
         testWithoutComparator.add(42);
         testWithoutComparator.add(239);
@@ -72,6 +92,7 @@ class TreeSetTest {
 
     @Test
     void last() {
+        assertNull(testWithoutComparator.last());
         testWithoutComparator.add(1337);
         testWithoutComparator.add(42);
         testWithoutComparator.add(239);
@@ -80,6 +101,7 @@ class TreeSetTest {
 
     @Test
     void lower() {
+        assertNull(testWithoutComparator.lower(42));
         for (int i = 0; i < 20; ++i) {
             testWithoutComparator.add(i);
         }
@@ -92,6 +114,7 @@ class TreeSetTest {
 
     @Test
     void floor() {
+        assertNull(testWithoutComparator.floor(42));
         for (int i = 0; i < 20; ++i) {
             testWithoutComparator.add(i);
         }
@@ -104,6 +127,7 @@ class TreeSetTest {
 
     @Test
     void ceiling() {
+        assertNull(testWithoutComparator.ceiling(42));
         for (int i = 0; i < 20; ++i) {
             testWithoutComparator.add(i);
         }
@@ -116,6 +140,7 @@ class TreeSetTest {
 
     @Test
     void higher() {
+        assertNull(testWithoutComparator.higher(42));
         for (int i = 0; i < 20; ++i) {
             testWithoutComparator.add(i);
         }
