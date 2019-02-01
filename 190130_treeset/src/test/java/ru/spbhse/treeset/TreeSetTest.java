@@ -3,7 +3,6 @@ package ru.spbhse.treeset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class TreeSetTest {
@@ -21,6 +20,19 @@ class TreeSetTest {
 
     @Test
     void size() {
+        assertEquals(0, testWithoutComparator.size());
+        testWithoutComparator.add(42);
+        assertEquals(1, testWithoutComparator.size());
+        testWithoutComparator.add(23);
+        assertEquals(2, testWithoutComparator.size());
+        testWithoutComparator.add(42);
+        assertEquals(2, testWithoutComparator.size());
+        testWithoutComparator.remove(42);
+        assertEquals(1, testWithoutComparator.size());
+        testWithoutComparator.remove(42);
+        assertEquals(1, testWithoutComparator.size());
+        testWithoutComparator.remove(23);
+        assertEquals(0, testWithoutComparator.size());
     }
 
     @Test
@@ -110,6 +122,10 @@ class TreeSetTest {
         assertEquals(19, testWithoutComparator.lower(42));
         assertNull(testWithoutComparator.lower(0));
         assertNull(testWithoutComparator.lower(-42));
+        for (int i = 30; i < 40; ++i) {
+            testWithoutComparator.add(i);
+        }
+        assertEquals(19, testWithoutComparator.lower(25));
     }
 
     @Test
@@ -123,6 +139,10 @@ class TreeSetTest {
         assertEquals(19, testWithoutComparator.floor(42));
         assertNull(testWithoutComparator.floor(-1));
         assertNull(testWithoutComparator.floor(-42));
+        for (int i = 30; i < 40; ++i) {
+            testWithoutComparator.add(i);
+        }
+        assertEquals(19, testWithoutComparator.floor(25));
     }
 
     @Test
@@ -136,6 +156,10 @@ class TreeSetTest {
         assertEquals(0, testWithoutComparator.ceiling(-42));
         assertNull(testWithoutComparator.ceiling(42));
         assertNull(testWithoutComparator.ceiling(20));
+        for (int i = 30; i < 40; ++i) {
+            testWithoutComparator.add(i);
+        }
+        assertEquals(30, testWithoutComparator.ceiling(25));
     }
 
     @Test
@@ -149,6 +173,10 @@ class TreeSetTest {
         assertEquals(0, testWithoutComparator.higher(-42));
         assertNull(testWithoutComparator.higher(42));
         assertNull(testWithoutComparator.higher(20));
+        for (int i = 30; i < 40; ++i) {
+            testWithoutComparator.add(i);
+        }
+        assertEquals(30, testWithoutComparator.higher(25));
     }
 
     @Test
