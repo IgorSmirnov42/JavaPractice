@@ -15,8 +15,8 @@ import java.util.*;
  */
 public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
 
-    private final Comparator<? super E> comparator;
-    private final mutableParameters treeParameters;
+    @Nullable private final Comparator<? super E> comparator;
+    @NotNull private final MutableParameters treeParameters;
     private final boolean isDescendingOrder;
 
     /*
@@ -32,10 +32,10 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      * Allows to find next and previous node
      */
     private class SplayTreeNode {
-        private SplayTreeNode parent;
-        private SplayTreeNode left;
-        private SplayTreeNode right;
-        private final E value;
+        @Nullable private SplayTreeNode parent;
+        @Nullable private SplayTreeNode left;
+        @Nullable private SplayTreeNode right;
+        @NotNull private final E value;
 
         private SplayTreeNode(@NotNull E value) {
             this.value = value;
@@ -175,6 +175,8 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      * Deletes an edge between child node and parent
      * Checks if some of them are nulls
      */
+    // Guaranteed no NullPointer there
+    @SuppressWarnings("ConstantConditions")
     private void safeDeleteParent(@Nullable SplayTreeNode childNode) {
         if (childNode == null) {
             return;
@@ -217,8 +219,8 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      * Class to store mutable parameters of tree
      * Can be modified in descending version of the tree
      */
-    private class mutableParameters {
-        private SplayTreeNode rootNode;
+    private class MutableParameters {
+        @Nullable private SplayTreeNode rootNode;
         private int size;
         private int treeVersion;
     }
@@ -226,14 +228,14 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
     /** Constructs TreeSet with default comparator */
     public TreeSet() {
         comparator = null;
-        treeParameters = new mutableParameters();
+        treeParameters = new MutableParameters();
         isDescendingOrder = false;
     }
 
     /** Constructs TreeSet with given comparator */
     public TreeSet(@NotNull Comparator<? super E> comparator) {
         this.comparator = comparator;
-        treeParameters = new mutableParameters();
+        treeParameters = new MutableParameters();
         isDescendingOrder = false;
     }
 
@@ -406,7 +408,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             return false;
         }
 
-        SplayTreeNode newNode = new SplayTreeNode(element);
+        var newNode = new SplayTreeNode(element);
         ++treeParameters.size;
         ++treeParameters.treeVersion;
 
