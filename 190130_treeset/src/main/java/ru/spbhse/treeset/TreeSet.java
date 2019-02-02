@@ -230,10 +230,12 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
         isDescendingOrder = false;
     }
 
-    /**
-     * Constructs TreeSet with given comparator
-     */
+    /** Constructs TreeSet with given comparator */
     public TreeSet(@NotNull Comparator<? super E> comparator) {
+        if (comparator == null) {
+            throw new IllegalArgumentException("Comparator in TreeSet constructor cannot be null");
+        }
+
         this.comparator = comparator;
         treeParameters = new mutableParameters();
         isDescendingOrder = false;
@@ -276,6 +278,10 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      */
     @Nullable
     private SplayTreeNode nearElement(@NotNull Object element) {
+        if (element == null) {
+            throw new IllegalArgumentException("TreeSet.nearElement cannot take null element");
+        }
+
         SplayTreeNode previousNode = null; //
         SplayTreeNode currentNode = treeParameters.rootNode;
         int compareResult;
@@ -334,6 +340,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
                 if (currentNode == null) {
                     throw new NoSuchElementException("TreeSet.iterator().next() was called but there is no next element");
                 }
+
                 E savedValue = currentNode.value;
                 if (rightOrder) {
                     currentNode = currentNode.next();
@@ -387,6 +394,10 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      */
     @Override
     public boolean contains(@NotNull Object element) {
+        if (element == null) {
+            throw new IllegalArgumentException("TreeSet.contains cannot get null element");
+        }
+
         SplayTreeNode foundNode = nearElement(element);
         if (foundNode == null) {
             return false;
@@ -403,6 +414,10 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
     // NullPointerException is impossible in that place
     @SuppressWarnings("ConstantConditions")
     public boolean add(@NotNull E element) {
+        if (element == null) {
+            throw new IllegalArgumentException("TreeSet.add cannot take null element");
+        }
+
         if (contains(element)) {
             return false;
         }
@@ -448,6 +463,10 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      */
     @Override
     public boolean remove(@NotNull Object element) {
+        if (element == null) {
+            throw new IllegalArgumentException("TreeSet.remove cannot take null element");
+        }
+
         if (!contains(element)) {
             return false;
         }
@@ -497,6 +516,10 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
     @Override
     @Nullable
     public E lower(@NotNull E element) {
+        if (element == null) {
+            throw new IllegalArgumentException("TreeSet.lower cannot take null element");
+        }
+
         if (treeParameters.rootNode == null) {
             return null;
         }
@@ -524,6 +547,10 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
     @Override
     @Nullable
     public E floor(@NotNull E element) {
+        if (element == null) {
+            throw new IllegalArgumentException("TreeSet.floor cannot take null element");
+        }
+
         if (contains(element)) {
             return element;
         }
@@ -538,6 +565,10 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
     @Override
     @Nullable
     public E ceiling(@NotNull E element) {
+        if (element == null) {
+            throw new IllegalArgumentException("TreeSet.ceiling cannot take null element");
+        }
+
         if (contains(element)) {
             return element;
         }
@@ -552,6 +583,10 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
     @Override
     @Nullable
     public E higher(@NotNull E element) {
+        if (element == null) {
+            throw new IllegalArgumentException("TreeSet.higher cannot take null element");
+        }
+
         if (treeParameters.rootNode == null) {
             return null;
         }
