@@ -1,12 +1,14 @@
 package ru.spbhse.treeset;
 
-import java.util.AbstractSet;
-import java.util.Comparator;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * Data structure that implements MyTreeSet interface (see MyTreeSet.java)
- * Implemented using Splay Tree (read more here: https://en.wikipedia.org/wiki/Splay_tree)
+ * Stores sorted set
+ * Implemented using Splay Tree
+ * It is not balanced tree, so some operations can take long time
+ * But amortized time of most operations is O(log n)
+ * Read more here: https://en.wikipedia.org/wiki/Splay_tree
  */
 public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
 
@@ -68,6 +70,10 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             zig();
         }
 
+        /**
+         * Moves current node to the root
+         * After each operation must be called from the lowest node reached during this operation
+         */
         private void splay() {
             while (parent != null) {
                 if (!parent.hasParent()) {
@@ -97,13 +103,17 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
         }
 
         private SplayTreeNode previous() {
+            splay();
             if (left != null) {
                 return left.last();
             }
-            if (parent != null) {
-                SplayTreeNode parentSaved = parent;
-                parent.splay();
-                return parentSaved;
+            return null;
+        }
+
+        private SplayTreeNode next() {
+            splay();
+            if (right != null) {
+                return right.first();
             }
             return null;
         }
@@ -127,6 +137,10 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
         }
     }
 
+    /**
+     * Deletes an edge between child node and parent
+     * Checks if some of them are nulls
+     */
     private void safeDeleteParent(SplayTreeNode childNode) {
         if (childNode == null) {
             return;
@@ -165,6 +179,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
     private SplayTreeNode rootNode;
     final private Comparator<? super E> comparator;
     private int size;
+    private int treeVersion;
 
     public TreeSet() {
         comparator = null;
@@ -224,8 +239,61 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
         return currentNode;
     }
 
+    private Iterator<E> makeIterator(boolean normalOrder) {
+        if (rootNode != null) {
+            if (normalOrder) {
+                rootNode = rootNode.first();
+            } else {
+                rootNode = rootNode.last();
+            }
+        }
+        return new Iterator<>() {
+            private SplayTreeNode currentNode = rootNode;
+            final private boolean rightOrder = normalOrder;
+            final private int iteratorVersion = treeVersion;
+
+            @Override
+            public boolean hasNext() {
+                if (treeVersion != iteratorVersion) {
+                    throw new ConcurrentModificationException("TreeSet iterator is invalid");
+                }
+                return currentNode != null;
+            }
+
+            @Override
+            public E next() {
+                if (treeVersion != iteratorVersion) {
+                    throw new ConcurrentModificationException("TreeSet iterator is invalid");
+                }
+                if (currentNode == null) {
+                    throw new NoSuchElementException("TreeSet.iterator().next() was called but there is no next element");
+                }
+                E savedValue = currentNode.value;
+                if (rightOrder) {
+                    currentNode = currentNode.next();
+                } else {
+                    currentNode = currentNode.previous();
+                }
+                if (currentNode != null) {
+                    rootNode = currentNode;
+                }
+                return savedValue;
+            }
+        };
+    }
+
     @Override
     public Iterator<E> iterator() {
+        return makeIterator(true);
+    }
+
+    @Override
+    public Iterator<E> descendingIterator() {
+        return makeIterator(false);
+    }
+
+    @Override
+    public TreeSet<E> descendingSet() {
         return null;
     }
 
@@ -238,17 +306,8 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
         return size;
     }
 
-    @Override
-    public Iterator<E> descendingIterator() {
-        return null;
-    }
-
-    @Override
-    public TreeSet<E> descendingSet() {
-        return null;
-    }
-
     /**
+     * Checks if element is contained in set
      * Amortized complexity O(log n)
      */
     @Override
@@ -273,6 +332,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
 
         SplayTreeNode newNode = new SplayTreeNode(element);
         ++size;
+        ++treeVersion;
 
         if (rootNode == null) {
             rootNode = newNode;
@@ -313,6 +373,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
         }
 
         --size;
+        ++treeVersion;
         SplayTreeNode foundNode = nearElement(element);
 
         // After nearElement() this node is already root => we have to merge root's children

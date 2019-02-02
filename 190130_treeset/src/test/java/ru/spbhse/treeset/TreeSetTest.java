@@ -3,6 +3,9 @@ package ru.spbhse.treeset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ConcurrentModificationException;
+import java.util.NoSuchElementException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class TreeSetTest {
@@ -16,6 +19,36 @@ class TreeSetTest {
 
     @Test
     void iterator() {
+        var elements = new int[] {23, 42, 51, 90};
+        for (int element : elements) {
+            testWithoutComparator.add(element);
+        }
+        var iter = testWithoutComparator.iterator();
+        for (int element : elements) {
+            assertTrue(iter.hasNext());
+            assertEquals(element, iter.next());
+        }
+        assertFalse(iter.hasNext());
+    }
+
+    @Test
+    void iteratorShouldThrowNoSuchElement() {
+        var iter = testWithoutComparator.iterator();
+        assertThrows(NoSuchElementException.class, iter::next);
+        testWithoutComparator.add(23);
+        iter = testWithoutComparator.iterator();
+        iter.next();
+        assertThrows(NoSuchElementException.class, iter::next);
+    }
+
+    @Test
+    void iteratorShouldThrowAfterModification() {
+        var iter = testWithoutComparator.iterator();
+        testWithoutComparator.add(42);
+        assertThrows(ConcurrentModificationException.class, iter::hasNext);
+        iter = testWithoutComparator.iterator();
+        testWithoutComparator.add(23);
+        assertThrows(ConcurrentModificationException.class, iter::next);
     }
 
     @Test
@@ -37,6 +70,16 @@ class TreeSetTest {
 
     @Test
     void descendingIterator() {
+        var elements = new int[] {90, 51, 42, 23};
+        for (int element : elements) {
+            testWithoutComparator.add(element);
+        }
+        var iter = testWithoutComparator.descendingIterator();
+        for (int element : elements) {
+            assertTrue(iter.hasNext());
+            assertEquals(element, iter.next());
+        }
+        assertFalse(iter.hasNext());
     }
 
     @Test
