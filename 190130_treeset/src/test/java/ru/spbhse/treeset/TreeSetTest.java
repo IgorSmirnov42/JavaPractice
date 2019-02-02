@@ -19,7 +19,7 @@ class TreeSetTest {
     }
 
     @Test
-    public void iteratorTotalTest() {
+    void iteratorTotalTest() {
         var elements = new int[] {23, 42, 51, 90};
         for (int element : elements) {
             testWithoutComparator.add(element);
@@ -33,7 +33,7 @@ class TreeSetTest {
     }
 
     @Test
-    public void iteratorShouldThrowNoSuchElement() {
+    void iteratorShouldThrowNoSuchElement() {
         var iter = testWithoutComparator.iterator();
         assertThrows(NoSuchElementException.class, iter::next);
         testWithoutComparator.add(23);
@@ -43,7 +43,7 @@ class TreeSetTest {
     }
 
     @Test
-    public void iteratorShouldThrowAfterModification() {
+    void iteratorShouldThrowAfterModification() {
         var iter = testWithoutComparator.iterator();
         testWithoutComparator.add(42);
         assertThrows(ConcurrentModificationException.class, iter::hasNext);
@@ -53,7 +53,7 @@ class TreeSetTest {
     }
 
     @Test
-    public void sizeTotalTest() {
+    void sizeTotalTest() {
         assertEquals(0, testWithoutComparator.size());
         testWithoutComparator.add(42);
         assertEquals(1, testWithoutComparator.size());
@@ -70,7 +70,7 @@ class TreeSetTest {
     }
 
     @Test
-    public void descendingIteratorTotalTest() {
+    void descendingIteratorTotalTest() {
         var elements = new int[] {90, 51, 42, 23};
         for (int element : elements) {
             testWithoutComparator.add(element);
@@ -84,7 +84,7 @@ class TreeSetTest {
     }
 
     @Test
-    public void descendingSetTotalTest() {
+    void descendingSetTotalTest() {
         var elements = new int[] {90, 51, 42, 23};
         for (int element : elements) {
             testWithoutComparator.add(element);
@@ -100,7 +100,7 @@ class TreeSetTest {
     }
 
     @Test
-    public void containsTotalTest() {
+    void containsTotalTest() {
         assertFalse(testWithoutComparator.contains(42));
         testWithoutComparator.add(42);
         assertTrue(testWithoutComparator.contains(42));
@@ -111,12 +111,12 @@ class TreeSetTest {
     }
 
     @Test
-    public void containsShouldNotGetNull() {
+    void containsShouldNotGetNull() {
         assertThrows(IllegalArgumentException.class, () -> testWithoutComparator.contains(null));
     }
 
     @Test
-    public void removeTotalTest() {
+    void removeTotalTest() {
         assertFalse(testWithoutComparator.contains(42));
         testWithoutComparator.add(42);
         testWithoutComparator.add(55);
@@ -127,12 +127,12 @@ class TreeSetTest {
     }
 
     @Test
-    public void removeShouldNotGetNull() {
+    void removeShouldNotGetNull() {
         assertThrows(IllegalArgumentException.class, () -> testWithoutComparator.remove(null));
     }
 
     @Test
-    public void manyAdds() {
+    void manyAdds() {
         for (int i = 0; i < 20; i++) {
             assertTrue(testWithoutComparator.add(i));
         }
@@ -148,7 +148,7 @@ class TreeSetTest {
     }
 
     @Test
-    public void addTotalTest() {
+    void addTotalTest() {
         assertTrue(testWithoutComparator.add(42));
         assertTrue(testWithoutComparator.contains(42));
         assertTrue(testWithoutComparator.add(21));
@@ -167,7 +167,7 @@ class TreeSetTest {
     }
 
     @Test
-    public void firstTotalTest() {
+    void firstTotalTest() {
         assertNull(testWithoutComparator.first());
         testWithoutComparator.add(1337);
         testWithoutComparator.add(42);
@@ -176,7 +176,7 @@ class TreeSetTest {
     }
 
     @Test
-    public void lastTotalTest() {
+    void lastTotalTest() {
         assertNull(testWithoutComparator.last());
         testWithoutComparator.add(1337);
         testWithoutComparator.add(42);
@@ -185,7 +185,7 @@ class TreeSetTest {
     }
 
     @Test
-    public void lowerTotalTest() {
+    void lowerTotalTest() {
         assertThrows(IllegalArgumentException.class, () -> testWithoutComparator.lower(null));
         assertNull(testWithoutComparator.lower(42));
         for (int i = 0; i < 20; ++i) {
@@ -203,7 +203,7 @@ class TreeSetTest {
     }
 
     @Test
-    public void floorTotalTest() {
+    void floorTotalTest() {
         assertThrows(IllegalArgumentException.class, () -> testWithoutComparator.floor(null));
         assertNull(testWithoutComparator.floor(42));
         for (int i = 0; i < 20; ++i) {
@@ -221,7 +221,7 @@ class TreeSetTest {
     }
 
     @Test
-    public void ceilingTotalTest() {
+    void ceilingTotalTest() {
         assertThrows(IllegalArgumentException.class, () -> testWithoutComparator.ceiling(null));
         assertNull(testWithoutComparator.ceiling(42));
         for (int i = 0; i < 20; ++i) {
@@ -239,7 +239,7 @@ class TreeSetTest {
     }
 
     @Test
-    public void higherTotalTest() {
+    void higherTotalTest() {
         assertThrows(IllegalArgumentException.class, () -> testWithoutComparator.higher(null));
         assertNull(testWithoutComparator.higher(42));
         for (int i = 0; i < 20; ++i) {
@@ -257,7 +257,7 @@ class TreeSetTest {
     }
 
     @Test
-    public void unsupportedClassShouldThrow() {
+    void unsupportedClassShouldThrow() {
         var test = new TreeSet<ClassWithoutComparator>();
         test.add(new ClassWithoutComparator(42));
         assertThrows(ClassCastException.class, () -> test.add(new ClassWithoutComparator(23)));
@@ -265,7 +265,7 @@ class TreeSetTest {
     }
 
     @Test
-    public void withSelfWrittenComparator() {
+    void withSelfWrittenComparator() {
         var comparator = new Comparator<ClassWithoutComparator>() {
             @Override
             public int compare(ClassWithoutComparator o1, ClassWithoutComparator o2) {
@@ -285,7 +285,7 @@ class TreeSetTest {
     }
 
     @Test
-    public void nullComparatorIsForbidden() {
+    void nullComparatorIsForbidden() {
         assertThrows(IllegalArgumentException.class, () -> new TreeSet<Integer>(null));
     }
 
