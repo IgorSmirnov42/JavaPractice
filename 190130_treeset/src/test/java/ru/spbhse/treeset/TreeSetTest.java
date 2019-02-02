@@ -3,6 +3,7 @@ package ru.spbhse.treeset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.NoSuchElementException;
 
@@ -84,6 +85,18 @@ class TreeSetTest {
 
     @Test
     void descendingSet() {
+        var elements = new int[] {90, 51, 42, 23};
+        for (int element : elements) {
+            testWithoutComparator.add(element);
+        }
+        TreeSet<Integer> descending = testWithoutComparator.descendingSet();
+        var iter = descending.iterator();
+        for (int element : elements) {
+            assertTrue(iter.hasNext());
+            assertEquals(element, iter.next());
+        }
+        testWithoutComparator.add(5);
+        assertEquals(5, descending.size());
     }
 
     @Test
@@ -228,6 +241,26 @@ class TreeSetTest {
         test.add(new ClassWithoutComparator(42));
         assertThrows(ClassCastException.class, () -> test.add(new ClassWithoutComparator(23)));
         assertThrows(ClassCastException.class, () -> test.contains(new ClassWithoutComparator(42)));
+    }
+
+    @Test
+    void withSelfWrittenComparator() {
+        var comparator = new Comparator<ClassWithoutComparator>() {
+            @Override
+            public int compare(ClassWithoutComparator o1, ClassWithoutComparator o2) {
+                return o2.x - o1.x;
+            }
+        };
+        var test = new TreeSet<>(comparator);
+        test.add(new ClassWithoutComparator(42));
+        test.add(new ClassWithoutComparator(51));
+        test.add(new ClassWithoutComparator(-42));
+
+        var order = new int[] {51, 42, -42};
+        var iter = test.iterator();
+        for (int element : order) {
+            assertEquals(element, iter.next().x);
+        }
     }
 
     private static class ClassWithoutComparator {

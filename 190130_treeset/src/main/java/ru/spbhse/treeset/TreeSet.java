@@ -1,5 +1,8 @@
 package ru.spbhse.treeset;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.*;
 
 /**
@@ -12,30 +15,43 @@ import java.util.*;
  */
 public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
 
+    private final Comparator<? super E> comparator;
+    private final mutableParameters treeParameters;
+    private final boolean isDescendingOrder;
+
     /*
     Not static because need to know about E
     Cannot be generic and static, because have to call methods that are in TreeSet class
     If I move safeSetChild inside (to make class static) I wouldn't be able to call from TreeSet
         like safeSetChild(a, b) (because function is not static), so I would have to have fictive node
     */
+
+    /**
+     * Class to work with splay tree nodes
+     * Provides splay operation, that moves node to root
+     * Allows to find next and previous node
+     */
     private class SplayTreeNode {
         private SplayTreeNode parent;
         private SplayTreeNode left;
         private SplayTreeNode right;
-        final private E value;
+        private final E value;
 
-        private SplayTreeNode(E value) {
+        private SplayTreeNode(@NotNull E value) {
             this.value = value;
         }
 
+        /** Returns true iff current node is left son. Node has to have parent */
         private boolean isLeftSon() {
             return parent.left == this;
         }
 
+        /** Returns true iff current node has parent */
         private boolean hasParent() {
             return parent != null;
         }
 
+        /** Rotates node around edge. Node has to have parent and has to be left son */
         private void leftRotate() {
             var previousParent = parent;
             safeSetChild(parent.parent, this, parent.hasParent() && parent.isLeftSon());
@@ -44,6 +60,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             safeSetChild(this, previousParent, false);
         }
 
+        /** Rotates node around edge. Node has to have parent and has to be right son */
         private void rightRotate() {
             var previousParent = parent;
             safeSetChild(parent.parent, this, parent.hasParent() && parent.isLeftSon());
@@ -52,6 +69,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             safeSetChild(this, previousParent, true);
         }
 
+        /** Rotates node around parents edge. Has to have parent */
         private void zig() {
             if (isLeftSon()) {
                 leftRotate();
@@ -60,11 +78,13 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             }
         }
 
+        /** zig-zig operation on splay tree */
         private void zigZig() {
             parent.zig();
             zig();
         }
 
+        /** zig-zag operation on splay tree */
         private void zigZag() {
             zig();
             zig();
@@ -86,6 +106,8 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             }
         }
 
+        /** Returns least element in tree and moves it to the root */
+        @NotNull
         private SplayTreeNode first() {
             if (left == null) {
                 splay();
@@ -94,6 +116,8 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             return left.first();
         }
 
+        /** Returns highest element in tree and moves it to the root */
+        @NotNull
         private SplayTreeNode last() {
             if (right == null) {
                 splay();
@@ -102,6 +126,11 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             return right.last();
         }
 
+        /**
+         * Returns previous element in a tree (and moves it to root)
+         * Returns null if there is no such element
+         */
+        @Nullable
         private SplayTreeNode previous() {
             splay();
             if (left != null) {
@@ -110,6 +139,11 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             return null;
         }
 
+        /**
+         * Returns next element in a tree (and moves it to root)
+         * Returns null if there is no such element
+         */
+        @Nullable
         private SplayTreeNode next() {
             splay();
             if (right != null) {
@@ -123,7 +157,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      * Creates an edge between parent and child node
      * Checks if some of them are nulls
      */
-    private void safeSetChild(SplayTreeNode parentNode, SplayTreeNode childNode, boolean leftSon) {
+    private void safeSetChild(@Nullable SplayTreeNode parentNode, @Nullable SplayTreeNode childNode, boolean leftSon) {
         if (parentNode != null) {
             if (leftSon) {
                 parentNode.left = childNode;
@@ -141,7 +175,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      * Deletes an edge between child node and parent
      * Checks if some of them are nulls
      */
-    private void safeDeleteParent(SplayTreeNode childNode) {
+    private void safeDeleteParent(@Nullable SplayTreeNode childNode) {
         if (childNode == null) {
             return;
         }
@@ -161,7 +195,8 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      * NB! All keys in left tree must be less then keys in right
      * Amortized complexity O(log n)
      */
-    private SplayTreeNode merge(SplayTreeNode leftTree, SplayTreeNode rightTree) {
+    @Nullable
+    private SplayTreeNode merge(@Nullable SplayTreeNode leftTree, @Nullable SplayTreeNode rightTree) {
         safeDeleteParent(leftTree);
         safeDeleteParent(rightTree);
 
@@ -176,41 +211,54 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
         return newRoot;
     }
 
+    // Not static for the same reasons as previous one
+    // I don't think that setters and getters are needed here
+    /**
+     * Class to store mutable parameters of tree
+     * Can be modified in descending version of the tree
+     */
     private class mutableParameters {
         private SplayTreeNode rootNode;
         private int size;
         private int treeVersion;
     }
 
-    final private Comparator<? super E> comparator;
-    final private mutableParameters treeParameters;
-    final private boolean isDescendingOrder;
-
+    /** Constructs TreeSet with default comparator */
     public TreeSet() {
         comparator = null;
         treeParameters = new mutableParameters();
         isDescendingOrder = false;
     }
 
-    public TreeSet(Comparator<? super E> comparator) {
+    /**
+     * Constructs TreeSet with given comparator
+     */
+    public TreeSet(@NotNull Comparator<? super E> comparator) {
         this.comparator = comparator;
         treeParameters = new mutableParameters();
         isDescendingOrder = false;
     }
 
-    private TreeSet(TreeSet<E> other, boolean isDescendingOrder) {
+    /**
+     * Constructor to construct descending set
+     * Allows to modify tree in both versions, and all changes will be done in both versions
+     */
+    private TreeSet(@NotNull TreeSet<E> other, boolean isDescendingOrder) {
         comparator = other.comparator;
         treeParameters = other.treeParameters;
         this.isDescendingOrder = isDescendingOrder;
     }
 
     /**
-     * TODO
+     * Compares elements using given comparator or using standard compareTo if it wasn't given
+     *
+     * @return negative value if a < b, 0 if a == b, positive value if a > b
      * @throws ClassCastException if E is not comparable and set was constructed without comparator
-     *         or Object cannot be casted to E and comparator was given
+     *                            or Object cannot be casted to E and comparator was given
      */
-    //@SuppressWarnings("unchecked")
-    private int compareElements(Object a, E b) {
+    // If there is incorrect cast should throw exception
+    @SuppressWarnings("unchecked")
+    private int compareElements(@NotNull Object a, @NotNull E b) {
 
         if (comparator != null) {
             return comparator.compare((E) a, b);
@@ -226,8 +274,8 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      * Returns null only if set is empty
      * Amortized complexity O(log n)
      */
-    private SplayTreeNode nearElement(Object element) {
-        // TODO : element not null
+    @Nullable
+    private SplayTreeNode nearElement(@NotNull Object element) {
         SplayTreeNode previousNode = null; //
         SplayTreeNode currentNode = treeParameters.rootNode;
         int compareResult;
@@ -236,8 +284,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             previousNode = currentNode;
             if (compareResult > 0) {
                 currentNode = currentNode.right;
-            }
-            else {
+            } else {
                 currentNode = currentNode.left;
             }
         }
@@ -254,6 +301,8 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
         return currentNode;
     }
 
+    /** Constructs iterator with needed traversal order */
+    @NotNull
     private Iterator<E> makeIterator(boolean normalOrder) {
         boolean order = normalOrder != isDescendingOrder;
         if (treeParameters.rootNode != null) {
@@ -277,6 +326,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             }
 
             @Override
+            @Nullable
             public E next() {
                 if (treeParameters.treeVersion != iteratorVersion) {
                     throw new ConcurrentModificationException("TreeSet iterator is invalid");
@@ -298,17 +348,26 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
         };
     }
 
+    /** Returns one-directional iterator to set */
     @Override
+    @NotNull
     public Iterator<E> iterator() {
         return makeIterator(true);
     }
 
+    /** Returns one-directional iterator to set with reverse direction */
     @Override
+    @NotNull
     public Iterator<E> descendingIterator() {
         return makeIterator(false);
     }
 
+    /**
+     * Returns set with reverse order view of the elements contained the set.
+     * Doesn't copy elements
+     */
     @Override
+    @NotNull
     public TreeSet<E> descendingSet() {
         return new TreeSet<>(this, !isDescendingOrder);
     }
@@ -327,7 +386,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      * Amortized complexity O(log n)
      */
     @Override
-    public boolean contains(Object element) {
+    public boolean contains(@NotNull Object element) {
         SplayTreeNode foundNode = nearElement(element);
         if (foundNode == null) {
             return false;
@@ -341,7 +400,9 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      * @return true if element was successfully added, false if it has already been in set
      */
     @Override
-    public boolean add(E element) {
+    // NullPointerException is impossible in that place
+    @SuppressWarnings("ConstantConditions")
+    public boolean add(@NotNull E element) {
         if (contains(element)) {
             return false;
         }
@@ -381,10 +442,12 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
     }
 
     /**
+     * Removes element that is equal to given from set
      * Amortized complexity O(log n)
+     * @return true if element was removed, false if it wasn't presented
      */
     @Override
-    public boolean remove(Object element) {
+    public boolean remove(@NotNull Object element) {
         if (!contains(element)) {
             return false;
         }
@@ -404,6 +467,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      * Amortized complexity O(log n)
      */
     @Override
+    @Nullable
     public E first() {
         if (treeParameters.rootNode == null) {
             return null;
@@ -413,9 +477,11 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
 
     /**
      * Returns the greatest element in set.
+     * If set is empty returns null
      * Amortized complexity O(log n)
      */
     @Override
+    @Nullable
     public E last() {
         if (treeParameters.rootNode == null) {
             return null;
@@ -429,13 +495,14 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      * Amortized complexity O(log n)
      */
     @Override
-    public E lower(E e) {
+    @Nullable
+    public E lower(@NotNull E element) {
         if (treeParameters.rootNode == null) {
             return null;
         }
 
-        SplayTreeNode nearNode = nearElement(e);
-        int compareResult = compareElements(e, nearNode.value);
+        SplayTreeNode nearNode = nearElement(element);
+        int compareResult = compareElements(element, nearNode.value);
 
         if (compareResult > 0) {
             return nearNode.value;
@@ -455,11 +522,12 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      * Amortized complexity O(log n)
      */
     @Override
-    public E floor(E e) {
-        if (contains(e)) {
-            return e;
+    @Nullable
+    public E floor(@NotNull E element) {
+        if (contains(element)) {
+            return element;
         }
-        return lower(e);
+        return lower(element);
     }
 
     /**
@@ -468,11 +536,12 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      * Amortized complexity O(log n)
      */
     @Override
-    public E ceiling(E e) {
-        if (contains(e)) {
-            return e;
+    @Nullable
+    public E ceiling(@NotNull E element) {
+        if (contains(element)) {
+            return element;
         }
-        return higher(e);
+        return higher(element);
     }
 
     /**
@@ -481,13 +550,14 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      * Amortized complexity O(log n)
      */
     @Override
-    public E higher(E e) {
+    @Nullable
+    public E higher(@NotNull E element) {
         if (treeParameters.rootNode == null) {
             return null;
         }
 
-        SplayTreeNode nearNode = nearElement(e);
-        int compareResult = compareElements(e, nearNode.value);
+        SplayTreeNode nearNode = nearElement(element);
+        int compareResult = compareElements(element, nearNode.value);
 
         if (compareResult < 0) {
             return nearNode.value;
