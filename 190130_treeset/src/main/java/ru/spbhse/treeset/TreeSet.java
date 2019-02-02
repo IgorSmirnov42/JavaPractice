@@ -176,17 +176,32 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
         return newRoot;
     }
 
-    private SplayTreeNode rootNode;
+    private class mutableParameters {
+        private SplayTreeNode rootNode;
+        private int size;
+        private int treeVersion;
+    }
+
     final private Comparator<? super E> comparator;
-    private int size;
-    private int treeVersion;
+    final private mutableParameters treeParameters;
+    final private boolean isDescendingOrder;
 
     public TreeSet() {
         comparator = null;
+        treeParameters = new mutableParameters();
+        isDescendingOrder = false;
     }
 
     public TreeSet(Comparator<? super E> comparator) {
         this.comparator = comparator;
+        treeParameters = new mutableParameters();
+        isDescendingOrder = false;
+    }
+
+    private TreeSet(TreeSet<E> other, boolean isDescendingOrder) {
+        comparator = other.comparator;
+        treeParameters = other.treeParameters;
+        this.isDescendingOrder = isDescendingOrder;
     }
 
     /**
@@ -214,7 +229,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
     private SplayTreeNode nearElement(Object element) {
         // TODO : element not null
         SplayTreeNode previousNode = null; //
-        SplayTreeNode currentNode = rootNode;
+        SplayTreeNode currentNode = treeParameters.rootNode;
         int compareResult;
         while (currentNode != null &&
                 (compareResult = compareElements(element, currentNode.value)) != 0) {
@@ -233,28 +248,29 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
 
         if (currentNode != null) {
             currentNode.splay();
-            rootNode = currentNode;
+            treeParameters.rootNode = currentNode;
         }
 
         return currentNode;
     }
 
     private Iterator<E> makeIterator(boolean normalOrder) {
-        if (rootNode != null) {
-            if (normalOrder) {
-                rootNode = rootNode.first();
+        boolean order = normalOrder != isDescendingOrder;
+        if (treeParameters.rootNode != null) {
+            if (order) {
+                treeParameters.rootNode = treeParameters.rootNode.first();
             } else {
-                rootNode = rootNode.last();
+                treeParameters.rootNode = treeParameters.rootNode.last();
             }
         }
         return new Iterator<>() {
-            private SplayTreeNode currentNode = rootNode;
-            final private boolean rightOrder = normalOrder;
-            final private int iteratorVersion = treeVersion;
+            private SplayTreeNode currentNode = treeParameters.rootNode;
+            final private boolean rightOrder = order;
+            final private int iteratorVersion = treeParameters.treeVersion;
 
             @Override
             public boolean hasNext() {
-                if (treeVersion != iteratorVersion) {
+                if (treeParameters.treeVersion != iteratorVersion) {
                     throw new ConcurrentModificationException("TreeSet iterator is invalid");
                 }
                 return currentNode != null;
@@ -262,7 +278,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
 
             @Override
             public E next() {
-                if (treeVersion != iteratorVersion) {
+                if (treeParameters.treeVersion != iteratorVersion) {
                     throw new ConcurrentModificationException("TreeSet iterator is invalid");
                 }
                 if (currentNode == null) {
@@ -275,7 +291,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
                     currentNode = currentNode.previous();
                 }
                 if (currentNode != null) {
-                    rootNode = currentNode;
+                    treeParameters.rootNode = currentNode;
                 }
                 return savedValue;
             }
@@ -294,7 +310,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
 
     @Override
     public TreeSet<E> descendingSet() {
-        return null;
+        return new TreeSet<>(this, !isDescendingOrder);
     }
 
     /**
@@ -303,7 +319,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      */
     @Override
     public int size() {
-        return size;
+        return treeParameters.size;
     }
 
     /**
@@ -331,23 +347,23 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
         }
 
         SplayTreeNode newNode = new SplayTreeNode(element);
-        ++size;
-        ++treeVersion;
+        ++treeParameters.size;
+        ++treeParameters.treeVersion;
 
-        if (rootNode == null) {
-            rootNode = newNode;
+        if (treeParameters.rootNode == null) {
+            treeParameters.rootNode = newNode;
             return true;
         }
 
         // element is least element => newNode becomes new root
-        if (compareElements(rootNode.first().value, element) > 0) {
-            rootNode.splay();
-            safeSetChild(newNode, rootNode, false);
-            rootNode = newNode;
+        if (compareElements(treeParameters.rootNode.first().value, element) > 0) {
+            treeParameters.rootNode.splay();
+            safeSetChild(newNode, treeParameters.rootNode, false);
+            treeParameters.rootNode = newNode;
             return true;
         }
 
-        rootNode.splay();
+        treeParameters.rootNode.splay();
 
         SplayTreeNode foundNode = nearElement(element);
 
@@ -356,9 +372,10 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             foundNode = foundNode.previous();
         }
 
+        // foundNode is guaranteed to be not null
         safeSetChild(newNode, foundNode.right, false);
         safeSetChild(foundNode, newNode, false);
-        rootNode = foundNode;
+        treeParameters.rootNode = foundNode;
 
         return true;
     }
@@ -372,12 +389,12 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             return false;
         }
 
-        --size;
-        ++treeVersion;
+        --treeParameters.size;
+        ++treeParameters.treeVersion;
         SplayTreeNode foundNode = nearElement(element);
 
         // After nearElement() this node is already root => we have to merge root's children
-        rootNode = merge(foundNode.left, foundNode.right);
+        treeParameters.rootNode = merge(foundNode.left, foundNode.right);
         return true;
     }
 
@@ -388,10 +405,10 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      */
     @Override
     public E first() {
-        if (rootNode == null) {
+        if (treeParameters.rootNode == null) {
             return null;
         }
-        return rootNode.first().value;
+        return treeParameters.rootNode.first().value;
     }
 
     /**
@@ -400,10 +417,10 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      */
     @Override
     public E last() {
-        if (rootNode == null) {
+        if (treeParameters.rootNode == null) {
             return null;
         }
-        return rootNode.last().value;
+        return treeParameters.rootNode.last().value;
     }
 
     /**
@@ -413,7 +430,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      */
     @Override
     public E lower(E e) {
-        if (rootNode == null) {
+        if (treeParameters.rootNode == null) {
             return null;
         }
 
@@ -428,8 +445,8 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             return null;
         }
 
-        rootNode = nearNode.left.last();
-        return rootNode.value;
+        treeParameters.rootNode = nearNode.left.last();
+        return treeParameters.rootNode.value;
     }
 
     /**
@@ -465,7 +482,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      */
     @Override
     public E higher(E e) {
-        if (rootNode == null) {
+        if (treeParameters.rootNode == null) {
             return null;
         }
 
@@ -480,7 +497,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             return null;
         }
 
-        rootNode = nearNode.right.first();
-        return rootNode.value;
+        treeParameters.rootNode = nearNode.right.first();
+        return treeParameters.rootNode.value;
     }
 }
