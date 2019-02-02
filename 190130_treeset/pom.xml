@@ -34,7 +34,28 @@
                     </dependency>
                 </dependencies>
             </plugin>
+            <plugin>
+                <groupId>se.eris</groupId>
+                <artifactId>notnull-instrumenter-maven-plugin</artifactId>
+                <version>0.6.9-RC2</version>
+                <executions>
+                    <execution>
+                        <id>instrument</id>
+                        <goals>
+                            <goal>instrument</goal>
+                            <goal>tests-instrument</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <notNull>
+                        <param>org.jetbrains.annotations.NotNull</param>
+                        <param>javax.validation.constraints.NotNull</param>
+                    </notNull>
+                </configuration>
+            </plugin>
         </plugins>
+
     </build>
     <properties>
         <maven.compiler.source>1.11</maven.compiler.source>
@@ -63,7 +84,7 @@
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
             <version>16.0.2</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
+
 </project>
