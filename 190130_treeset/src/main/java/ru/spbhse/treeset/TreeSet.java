@@ -282,7 +282,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             throw new IllegalArgumentException("TreeSet.nearElement cannot take null element");
         }
 
-        SplayTreeNode previousNode = null; //
+        SplayTreeNode previousNode = null;
         SplayTreeNode currentNode = treeParameters.rootNode;
         int compareResult;
         while (currentNode != null &&
@@ -462,6 +462,8 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      * @return true if element was removed, false if it wasn't presented
      */
     @Override
+    // NullPointerException is impossible in that place
+    @SuppressWarnings("ConstantConditions")
     public boolean remove(@NotNull Object element) {
         if (element == null) {
             throw new IllegalArgumentException("TreeSet.remove cannot take null element");
@@ -515,6 +517,8 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      */
     @Override
     @Nullable
+    // NullPointerException is impossible in that place
+    @SuppressWarnings("ConstantConditions")
     public E lower(@NotNull E element) {
         if (element == null) {
             throw new IllegalArgumentException("TreeSet.lower cannot take null element");
@@ -582,6 +586,8 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
      */
     @Override
     @Nullable
+    // NullPointerException is impossible in that place
+    @SuppressWarnings("ConstantConditions")
     public E higher(@NotNull E element) {
         if (element == null) {
             throw new IllegalArgumentException("TreeSet.higher cannot take null element");
