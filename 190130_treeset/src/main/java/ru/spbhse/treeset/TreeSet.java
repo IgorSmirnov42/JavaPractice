@@ -326,7 +326,7 @@ public class TreeSet<E> extends AbstractSet<E> implements MyTreeSet<E> {
             }
 
             @Override
-            @Nullable
+            @NotNull
             public E next() {
                 if (treeParameters.treeVersion != iteratorVersion) {
                     throw new ConcurrentModificationException("TreeSet iterator is invalid");
