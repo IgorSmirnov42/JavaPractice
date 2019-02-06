@@ -113,15 +113,15 @@ public class SmartListTest {
     @Test
     public void testAddManyElementsThenRemove() throws Exception {
         List<Object> list = newList();
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 7; i++) {
             list.add(i + 1);
         }
 
-        assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6), list);
+        assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7), list);
 
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 7; i++) {
             list.remove(list.size() - 1);
-            assertEquals(5 - i, list.size());
+            assertEquals(6 - i, list.size());
         }
 
         assertEquals(Collections.emptyList(), list);
