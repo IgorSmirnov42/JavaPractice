@@ -43,9 +43,9 @@ public class SmartList<E> extends AbstractList<E> implements List<E> {
         } else if (size < MAX_ARRAY_SIZE) {
             arrayAdd(index, element);
         } else if (size == MAX_ARRAY_SIZE) {
-            Object[] previousArray = (E[]) data;
+            E[] previousArray = (E[]) data;
             data = new ArrayList<E>();
-            for (Object e : previousArray) {
+            for (E e : previousArray) {
                 ((ArrayList<E>)data).add((E) e);
             }
             ((ArrayList<E>)data).add(index, element);
