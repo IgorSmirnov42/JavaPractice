@@ -2,7 +2,7 @@ language: java
 jdk:
   - openjdk11
 os:
-  - linux 
+  - linux
 env:
   - PROJECT_DIR=190116_hashmap
   - PROJECT_DIR=190123_trie
