@@ -9,3 +9,4 @@ env:
   - PROJECT_DIR=190123_trie
   - PROJECT_DIR=190130_treeset
 script: cd $PROJECT_DIR && mvn test
+
