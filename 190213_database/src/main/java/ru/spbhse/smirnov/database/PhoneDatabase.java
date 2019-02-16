@@ -1,13 +1,18 @@
 package ru.spbhse.smirnov.database;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PhoneDatabase {
-    private final String databaseUrl;
+import static java.lang.Character.isDigit;
 
-    public PhoneDatabase(String databaseShortName) throws SQLException {
+public class PhoneDatabase {
+    @NotNull private final String databaseUrl;
+    private static final String allowedSymbolsInPhoneNumber = " -()";
+
+    public PhoneDatabase(@NotNull String databaseShortName) throws SQLException {
         databaseUrl = "jdbc:sqlite:" + databaseShortName + ".db";
         try (Connection connection = DriverManager.getConnection(databaseUrl)) {
             try (Statement statement = connection.createStatement()) {
@@ -32,6 +37,7 @@ public class PhoneDatabase {
         }
     }
 
+    @NotNull
     public List<NamePhonePair> getAllNamePhonePairs() throws SQLException {
         List<NamePhonePair> allPairs = new ArrayList<>();
         try (Connection connection = DriverManager.getConnection(databaseUrl)) {
@@ -50,7 +56,8 @@ public class PhoneDatabase {
         return allPairs;
     }
 
-    public List<String> getAllNamesByPhone(String phoneNumber) throws SQLException {
+    @NotNull
+    public List<String> getAllNamesByPhone(@NotNull String phoneNumber) throws SQLException {
         List<String> allNames = new ArrayList<>();
         try (Connection connection = DriverManager.getConnection(databaseUrl)) {
             try (Statement statement = connection.createStatement()) {
@@ -68,7 +75,8 @@ public class PhoneDatabase {
         return allNames;
     }
 
-    public List<String> getAllPhonesByName(String name) throws SQLException {
+    @NotNull
+    public List<String> getAllPhonesByName(@NotNull String name) throws SQLException {
         List<String> allPhones = new ArrayList<>();
         try (Connection connection = DriverManager.getConnection(databaseUrl)) {
             try (Statement statement = connection.createStatement()) {
@@ -86,7 +94,8 @@ public class PhoneDatabase {
         return allPhones;
     }
 
-    public void addRecord(String ownerName, String phoneNumber) throws SQLException {
+    @NotNull
+    public void addRecord(@NotNull String ownerName, @NotNull String phoneNumber) throws SQLException {
         addNameIfNotExists(ownerName);
         addPhoneIfNotExists(phoneNumber);
         try (Connection connection = DriverManager.getConnection(databaseUrl)) {
@@ -99,7 +108,7 @@ public class PhoneDatabase {
         }
     }
 
-    public void deleteRecord(String ownerName, String phoneNumber) throws SQLException {
+    public void deleteRecord(@NotNull String ownerName, @NotNull String phoneNumber) throws SQLException {
         try (Connection connection = DriverManager.getConnection(databaseUrl)) {
             try (Statement statement = connection.createStatement()) {
                 statement.executeUpdate("DELETE FROM OwnersPhones "
@@ -109,7 +118,7 @@ public class PhoneDatabase {
         }
     }
 
-    public void replaceNameByPair(String oldName, String phoneNumber, String newName) throws SQLException {
+    public void replaceNameByPair(@NotNull String oldName, @NotNull String phoneNumber, @NotNull String newName) throws SQLException {
         addNameIfNotExists(newName);
         try (Connection connection = DriverManager.getConnection(databaseUrl)) {
             try (Statement statement = connection.createStatement()) {
@@ -123,7 +132,7 @@ public class PhoneDatabase {
         }
     }
 
-    public void replacePhoneByPair(String name, String oldPhoneNumber, String newPhoneNumber) throws SQLException {
+    public void replacePhoneByPair(@NotNull String name, @NotNull String oldPhoneNumber, @NotNull String newPhoneNumber) throws SQLException {
         addPhoneIfNotExists(newPhoneNumber);
         try (Connection connection = DriverManager.getConnection(databaseUrl)) {
             try (Statement statement = connection.createStatement()) {
@@ -137,7 +146,7 @@ public class PhoneDatabase {
         }
     }
 
-    private void addNameIfNotExists(String name) throws SQLException {
+    private void addNameIfNotExists(@NotNull String name) throws SQLException {
         try (Connection connection = DriverManager.getConnection(databaseUrl)) {
             try (Statement statement = connection.createStatement()) {
                 statement.executeUpdate("INSERT OR IGNORE INTO Owners(name) VALUES('"+ name + "')");
@@ -145,7 +154,7 @@ public class PhoneDatabase {
         }
     }
 
-    private void addPhoneIfNotExists(String phoneNumber) throws SQLException {
+    private void addPhoneIfNotExists(@NotNull String phoneNumber) throws SQLException {
         try (Connection connection = DriverManager.getConnection(databaseUrl)) {
             try (Statement statement = connection.createStatement()) {
                 statement.executeUpdate("INSERT OR IGNORE INTO Phones(phoneNumber) VALUES('"+ phoneNumber + "')");
