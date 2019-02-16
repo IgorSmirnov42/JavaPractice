@@ -114,7 +114,7 @@ public class DatabaseClient {
                         writer.newLine();
                         writer.flush();
                 }
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException | SQLException e) {
                 writer.write(e.getMessage());
                 writer.flush();
             }
