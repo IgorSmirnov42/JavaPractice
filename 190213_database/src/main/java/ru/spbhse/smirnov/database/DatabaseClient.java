@@ -1,16 +1,29 @@
 package ru.spbhse.smirnov.database;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.*;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * Client to interact with database.
+ * To interact from console run main
+ */
 public class DatabaseClient {
     public static void main(String[] args) throws SQLException, IOException {
-        execute(new BufferedReader(new InputStreamReader(System.in)), new BufferedWriter(new OutputStreamWriter(System.out)));
+        execute(new BufferedReader(new InputStreamReader(System.in)),
+                new BufferedWriter(new OutputStreamWriter(System.out)),
+                "mainDatabase");
     }
 
-    public static void execute(BufferedReader reader, BufferedWriter writer) throws IOException, SQLException {
-        var database = new PhoneDatabase("mainDatabase");
+    /**
+     * Starts interaction with database
+     * After exit saves database
+     */
+    public static void execute(@NotNull BufferedReader reader, @NotNull BufferedWriter writer,
+                               @NotNull String databaseName) throws IOException, SQLException {
+        var database = new PhoneDatabase(databaseName);
         boolean executing = true;
         while (executing) {
             writer.write("Write command name (8 for help): ");
