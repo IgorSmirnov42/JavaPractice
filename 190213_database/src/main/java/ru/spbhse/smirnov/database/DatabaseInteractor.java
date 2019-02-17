@@ -7,10 +7,10 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * Client to interact with database.
+ * Interaction with database.
  * To interact from console run main
  */
-public class DatabaseClient {
+public class DatabaseInteractor {
     public static void main(String[] args) throws SQLException, IOException {
         execute(new BufferedReader(new InputStreamReader(System.in)),
                 new BufferedWriter(new OutputStreamWriter(System.out)),
@@ -129,6 +129,7 @@ public class DatabaseClient {
                 }
             } catch (IllegalArgumentException | SQLException e) {
                 writer.write(e.getMessage());
+                writer.newLine();
                 writer.flush();
             }
         }
