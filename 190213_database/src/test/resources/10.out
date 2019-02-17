@@ -1,2 +1,2 @@
-Write command name (8 for help): Write owner name: Write phone number: Argument for @NotNull parameter 'phoneNumber' of ru/spbhse/smirnov/database/PhoneDatabase.addRecord must not be null
+Write command name (8 for help): Write owner name: Write phone number: NotNull annotated argument 1 of ru/spbhse/smirnov/database/PhoneDatabase.addRecord must not be null
 Write command name (8 for help): 
