@@ -1,5 +1,6 @@
 package ru.spbhse.smirnov.database;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,6 +17,7 @@ class DatabaseInteractorTest {
     private static final String databaseName = "test";
 
     @BeforeEach
+    @AfterEach
     void clearDB() throws SQLException {
         var db = new PhoneDatabase(databaseName);
         db.clear();
@@ -81,10 +83,9 @@ class DatabaseInteractorTest {
                 new InputStreamReader(
                         new FileInputStream(
                                 new File("src/test/resources/" + inputFile))));
-             BufferedWriter writer = new BufferedWriter(
-                     new OutputStreamWriter(
+             Writer writer = new OutputStreamWriter(
                              new FileOutputStream(
-                                     new File("src/test/resources/" + outputFile))))) {
+                                     new File("src/test/resources/" + outputFile)))) {
             DatabaseInteractor.execute(reader, writer, databaseName);
         }
         return filesAreEqual("src/test/resources/" + outputFile, "src/test/resources/" + answerFile);

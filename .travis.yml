@@ -7,4 +7,5 @@ env:
   - PROJECT_DIR=190116_hashmap
   - PROJECT_DIR=190123_trie
   - PROJECT_DIR=190130_treeset
+  - PROJECT_DIR=190213_database
 script: cd $PROJECT_DIR && mvn test

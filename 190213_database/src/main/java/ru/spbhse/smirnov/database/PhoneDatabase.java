@@ -124,10 +124,7 @@ public class PhoneDatabase {
         }
     }
 
-    /**
-     * Deletes pair name-phone from database if it was there before
-     * Deletes pair only from OwnersPhones table
-     */
+    /** Deletes pair name-phone from database if it was there before */
     public void deleteRecord(@NotNull String ownerName, @NotNull String phoneNumber) throws SQLException {
         try (Connection connection = DriverManager.getConnection(databaseUrl)) {
             String query = "DELETE FROM OwnersPhones "
@@ -139,13 +136,15 @@ public class PhoneDatabase {
                 statement.setString(2, phoneNumber);
                 statement.executeUpdate();
             }
+            deletePhoneNumberIfNotLinked(connection, phoneNumber);
+            deleteNameIfNotLinked(connection, ownerName);
         }
     }
 
     /**
      * Replaces name in pair name-phone
      * If there was pair newName-phoneNumber doesn't create new one
-     * Doesn't delete unnecessary elements of Owners and Phones tables
+     * Deletes unnecessary elements of Owners and Phones tables
      */
     @SuppressWarnings("Duplicates")
     public void replaceNameByPair(@NotNull String oldName, @NotNull String phoneNumber, @NotNull String newName) throws SQLException {
@@ -163,13 +162,14 @@ public class PhoneDatabase {
                 statement.setString(3, phoneNumber);
                 statement.executeUpdate();
             }
+            deleteNameIfNotLinked(connection, oldName);
         }
     }
 
     /**
      * Replaces phone in pair name-phone
      * If there was pair name-newPhoneNumber doesn't create new one
-     * Doesn't delete unnecessary elements of Owners and Phones tables
+     * Deletes unnecessary elements of Owners and Phones tables
      */
     @SuppressWarnings("Duplicates")
     public void replacePhoneByPair(@NotNull String name, @NotNull String oldPhoneNumber, @NotNull String newPhoneNumber) throws SQLException {
@@ -187,6 +187,7 @@ public class PhoneDatabase {
                 statement.setString(3, oldPhoneNumber);
                 statement.executeUpdate();
             }
+            deletePhoneNumberIfNotLinked(connection, oldPhoneNumber);
         }
     }
 
@@ -220,6 +221,44 @@ public class PhoneDatabase {
                 statement.execute("DELETE FROM Phones");
                 statement.execute("DELETE FROM OwnersPhones");
                 statement.execute("VACUUM");
+            }
+        }
+    }
+
+    private void deleteNameIfNotLinked(@NotNull Connection connection, @NotNull String name) throws SQLException {
+        String queryToLinkingDB = "SELECT Phones.phoneNumber FROM Phones, Owners, OwnersPhones "
+                + "WHERE Phones.id = OwnersPhones.phoneId "
+                + "AND Owners.id = OwnersPhones.ownerId "
+                + "AND Owners.name = ?";
+        try (PreparedStatement statement = connection.prepareStatement(queryToLinkingDB)) {
+            statement.setString(1, name);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    String queryToOwners = "DELETE FROM Owners WHERE name = ?";
+                    try (PreparedStatement deleteStatement = connection.prepareStatement(queryToOwners)) {
+                       deleteStatement.setString(1, name);
+                       deleteStatement.execute();
+                    }
+                }
+            }
+        }
+    }
+
+    private void deletePhoneNumberIfNotLinked(@NotNull Connection connection, @NotNull String phoneNumber) throws SQLException {
+        String queryToLinkingDB = "SELECT Owners.name FROM Phones, Owners, OwnersPhones "
+                + "WHERE Phones.id = OwnersPhones.phoneId "
+                + "AND Owners.id = OwnersPhones.ownerId "
+                + "AND Phones.phoneNumber = ?";
+        try (PreparedStatement statement = connection.prepareStatement(queryToLinkingDB)) {
+            statement.setString(1, phoneNumber);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    String queryToPhones = "DELETE FROM Phones WHERE phoneNumber = ?";
+                    try (PreparedStatement deleteStatement = connection.prepareStatement(queryToPhones)) {
+                        deleteStatement.setString(1, phoneNumber);
+                        deleteStatement.execute();
+                    }
+                }
             }
         }
     }
