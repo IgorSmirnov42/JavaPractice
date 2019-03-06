@@ -75,7 +75,7 @@ public class InjectorTest {
                 Collections.singletonList("spb.hse.smirnov.cw2.testClasses.CounterClass")
         );
         assertTrue(object instanceof ClassWithDependencyWithObject);
-        assertEquals(CounterClass.counter, 1);
+        assertEquals(1, CounterClass.counter);
         CounterClass.clear();
     }
 
