@@ -1,6 +1,7 @@
 package ru.spbhse.smirnov.reflector;
 
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.spbhse.smirnov.reflector.testClasses.*;
@@ -45,6 +46,11 @@ class ReflectorTest {
         toTestFileWriter = new FileWriter("src/test/resources/test.output");
     }
 
+    @AfterEach
+    void closeFile() throws IOException {
+        toTestFileWriter.close();
+    }
+
     private Writer toTestFileWriter;
 
     ReflectorTest() throws IOException {
@@ -53,25 +59,25 @@ class ReflectorTest {
     @Test
     void oneMethodClassPrintTest() throws IOException {
         printStructure(OneMethodClass.class);
-        assertTrue(filesAreEqual("src/test/resources/1.out"));
+        assertTrue(filesAreEqual("src/test/resources/1.out", "SomeClass.java"));
     }
 
     @Test
     void finalFieldPrintTest() throws IOException {
         printStructure(ClassWithFinalField.class);
-        assertTrue(filesAreEqual("src/test/resources/2.out"));
+        assertTrue(filesAreEqual("src/test/resources/2.out", "SomeClass.java"));
     }
 
     @Test
     void genericClassPrintTest() throws IOException {
         printStructure(GenericClass.class);
-        assertTrue(filesAreEqual("src/test/resources/3.out"));
+        assertTrue(filesAreEqual("src/test/resources/3.out", "SomeClass.java"));
     }
 
     @Test
     void innerClassPrintTest() throws IOException {
         printStructure(ClassWithInnerClass.class);
-        assertTrue(filesAreEqual("src/test/resources/4.out"));
+        assertTrue(filesAreEqual("src/test/resources/4.out", "SomeClass.java"));
     }
 
     @Test
@@ -90,6 +96,93 @@ class ReflectorTest {
         printStructure(JustBigClass.class);
         compileFile();
         equalAsDiff(someClass, JustBigClass.class);
+    }
+
+    @Test
+    void modificatorsMustBeImportant() throws IOException {
+        class A {
+            int a;
+            private void f() {}
+        }
+
+        class B {
+            private int a;
+            void f() {}
+        }
+
+        diffFields(A.class, B.class, toTestFileWriter);
+        diffMethods(A.class, B.class, toTestFileWriter);
+        toTestFileWriter.flush();
+        assertTrue(filesAreEqual("src/test/resources/test.output", "src/test/resources/5.out"));
+    }
+
+    @Test
+    void namesShouldBeImportant() throws IOException {
+        class A {
+            int a;
+            void g() {}
+        }
+
+        class B {
+            int b;
+            void f() {}
+        }
+
+        diffFields(A.class, B.class, toTestFileWriter);
+        diffMethods(A.class, B.class, toTestFileWriter);
+        toTestFileWriter.flush();
+        assertTrue(filesAreEqual("src/test/resources/6.out", "src/test/resources/test.output"));
+    }
+
+    @Test
+    void returnValueShouldBeImportant() throws IOException {
+        class A {
+            void f() {}
+        }
+
+        class B {
+            int f() {
+                return 1;
+            }
+        }
+
+        diffMethods(A.class, B.class, toTestFileWriter);
+        toTestFileWriter.flush();
+        assertTrue(filesAreEqual("src/test/resources/7.out", "src/test/resources/test.output"));
+    }
+
+    @Test
+    void genericMethodsAreEqualInStrangeWay() throws IOException {
+        class A {
+            private <T> T justGenericMethod() {
+                return null;
+            }
+        }
+
+        class B {
+            private <E> E justGenericMethod() {
+                return null;
+            }
+        }
+
+        diffMethods(A.class, B.class, toTestFileWriter);
+        toTestFileWriter.flush();
+        assertTrue(filesAreEqual("src/test/resources/8.out", "src/test/resources/test.output"));
+    }
+
+    @Test
+    void functionParameterNamesDoesNotMatter() throws IOException {
+        class A {
+            int a;
+            void f(int a, int b) {}
+        }
+
+        class B {
+            int a;
+            void f(int b, int c) {}
+        }
+
+        diffMethods(A.class, B.class, equalWriter);
     }
 
     private void equalAsDiff(Class<?> a, Class<?> b) throws IOException {
@@ -114,11 +207,9 @@ class ReflectorTest {
         someClass = Class.forName("SomeClass", false, classLoader);
     }
 
-    private boolean filesAreEqual(String path) throws IOException {
-        var firstFile = Files.lines(Paths.get(path)).collect(Collectors.toList());
-        var secondFile = Files.lines(Paths.get("SomeClass.java")).collect(Collectors.toList());
+    private boolean filesAreEqual(String path1, String path2) throws IOException {
+        var firstFile = Files.lines(Paths.get(path1)).collect(Collectors.toList());
+        var secondFile = Files.lines(Paths.get(path2)).collect(Collectors.toList());
         return firstFile.equals(secondFile);
     }
 }
-
-

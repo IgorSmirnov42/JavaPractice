@@ -1,0 +1,4 @@
+int a
+int b
+void g(int arg0, int arg1)
+void f(int arg0, int arg1)

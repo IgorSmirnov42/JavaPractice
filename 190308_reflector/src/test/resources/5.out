@@ -1,0 +1,4 @@
+int a
+private int a
+private void f()
+void f()

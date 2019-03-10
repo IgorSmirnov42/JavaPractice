@@ -210,6 +210,8 @@ public class Reflector {
     }
 
     /** Prints all differences between methods and fields in given classes */
+    // Cannot be tested because of method signature (It should output to stdout)
+    // But I sincerely believe it works (the only think I do is making that writer)
     public static void diffClasses(@NotNull Class<?> a, @NotNull Class<?> b) {
         try {
             var writer = new Writer() {
@@ -257,14 +259,14 @@ public class Reflector {
         for (FieldInformation field : aFields) {
             if (!bFields.contains(field)) {
                 printField(writer, field.field);
-                System.out.println();
+                writer.write("\n");
             }
         }
 
         for (FieldInformation field : bFields) {
             if (!aFields.contains(field)) {
                 printField(writer, field.field);
-                System.out.println();
+                writer.write("\n");
             }
         }
     }
@@ -292,14 +294,14 @@ public class Reflector {
         for (MethodInformation method : aMethods) {
             if (!bMethods.contains(method)) {
                 printMethod(writer, method.method, method.clazz);
-                System.out.println();
+                writer.write("\n");
             }
         }
 
         for (MethodInformation method : bMethods) {
             if (!aMethods.contains(method)) {
                 printMethod(writer, method.method, method.clazz);
-                System.out.println();
+                writer.write("\n");
             }
         }
     }
