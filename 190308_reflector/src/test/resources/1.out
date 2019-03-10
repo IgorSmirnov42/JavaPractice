@@ -1,0 +1,7 @@
+public class SomeClass {
+    public SomeClass() {
+    }
+    private int method(int arg0, int arg1) {
+        return 0;
+    }
+}

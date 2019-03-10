@@ -1,0 +1,5 @@
+public class SomeClass {
+    public SomeClass() {
+    }
+    private final Integer finalField = null;
+}

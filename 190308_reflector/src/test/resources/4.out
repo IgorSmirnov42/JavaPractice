@@ -1,0 +1,9 @@
+public class SomeClass {
+    Integer b = null;
+    private class Inner {
+        Integer a = null;
+        public int innerFunction() {
+            return 0;
+        }
+    }
+}
