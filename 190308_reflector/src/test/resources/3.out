@@ -1,0 +1,8 @@
+public class SomeClass<E> {
+    public SomeClass() {
+    }
+    E a = null;
+    private <T> E genericMethod(T arg0) {
+        return null;
+    }
+}
