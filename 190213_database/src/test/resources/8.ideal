@@ -1,0 +1,9 @@
+Write command name (8 for help): 0 to exit
+1 to add new record
+2 to get all phones numbers of given person
+3 to get all owners of given phone number
+4 to delete record
+5 to replace owner's name in pair
+6 to replace owner's phone in pair
+7 to print all pairs in database
+Write command name (8 for help): 
