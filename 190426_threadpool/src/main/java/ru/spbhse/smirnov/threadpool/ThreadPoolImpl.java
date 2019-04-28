@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 public class ThreadPoolImpl {
     @NotNull private final TaskQueue queue = new TaskQueue();
     @NotNull private final Thread[] threads;
-    private volatile boolean shutdownFlag = false;
+    private boolean shutdownFlag = false;
 
     @NotNull private final Object balanceBlock = new Object();
     /** Difference between accepted for execution number of tasks and finished tasks */
@@ -53,10 +53,10 @@ public class ThreadPoolImpl {
      */
     @NotNull
     public <T> LightFuture<T> submit(@NotNull Supplier<T> supplier) {
-        if (shutdownFlag) {
-            throw new IllegalStateException("Submit must not be called after shutdown");
-        }
         synchronized (balanceBlock) {
+            if (shutdownFlag) {
+                throw new IllegalStateException("Submit must not be called after shutdown");
+            }
             ++currentBalance;
         }
         var task = new Task<>(supplier);
@@ -74,8 +74,8 @@ public class ThreadPoolImpl {
         and not to block current one...
     */
     public void shutdown() throws InterruptedException {
-        shutdownFlag = true;
         synchronized (balanceBlock) {
+            shutdownFlag = true;
             while (currentBalance != 0) {
                 balanceBlock.wait();
             }
@@ -118,6 +118,9 @@ public class ThreadPoolImpl {
         @NotNull
         public <F> LightFuture<F> thenApply(@NotNull Function<? super T, F> functionToApply) {
             synchronized (balanceBlock) {
+                if (shutdownFlag) {
+                    throw new IllegalStateException("thenApply must not be called after shutdown");
+                }
                 ++currentBalance;
             }
             synchronized (tasksToApply) {
