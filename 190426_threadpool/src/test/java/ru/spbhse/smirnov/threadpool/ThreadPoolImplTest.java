@@ -159,7 +159,7 @@ class ThreadPoolImplTest {
         reallyNThreads(5);
         reallyNThreads(1);
         reallyNThreads(20);
-        reallyNThreads(50);
+        reallyNThreads(30);
     }
 
     void reallyNThreads(int n) throws InterruptedException {
