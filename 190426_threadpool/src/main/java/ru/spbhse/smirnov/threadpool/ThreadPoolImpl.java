@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 public class ThreadPoolImpl {
     @NotNull private final TaskQueue queue = new TaskQueue();
     @NotNull private final Thread[] threads;
-    private boolean shutdownFlag = false;
+    private volatile boolean shutdownFlag = false;
 
     @NotNull private final Object balanceBlock = new Object();
     /** Difference between accepted for execution number of tasks and finished tasks */
@@ -103,9 +103,13 @@ public class ThreadPoolImpl {
         /** {@inheritDoc} */
         @Override
         @Nullable
-        public synchronized T get() throws LightExecutionException, InterruptedException {
-            while (!ready) {
-                wait();
+        public T get() throws LightExecutionException, InterruptedException {
+            if (!ready) {
+                synchronized (this) {
+                    while (!ready) {
+                        wait();
+                    }
+                }
             }
             if (exception != null) {
                 throw exception;
@@ -139,7 +143,6 @@ public class ThreadPoolImpl {
         }
 
         /** Creates Task object. Doesn't start it's execution */
-        // Package private for testing
         public Task(@NotNull Supplier<T> task) {
             this.task = task;
         }

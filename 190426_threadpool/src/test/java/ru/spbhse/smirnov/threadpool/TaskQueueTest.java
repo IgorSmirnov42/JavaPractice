@@ -34,31 +34,31 @@ class TaskQueueTest {
 
     @Test
     void severalTasksShouldBeWaited() throws InterruptedException, TimeoutException {
-        runManyСonsumersAndProductors(1, 1);
+        runManyСonsumersAndProducers(1, 1);
     }
 
     @Test
     void shouldNotBeProblemsWithSeveralConsumers() throws InterruptedException, TimeoutException {
-        runManyСonsumersAndProductors(100, 1);
+        runManyСonsumersAndProducers(100, 1);
     }
 
     @Test
-    void shouldNotBeProblemsWithSeveralProductors() throws InterruptedException, TimeoutException {
-        runManyСonsumersAndProductors(1, 100);
+    void shouldNotBeProblemsWithSeveralProducers() throws InterruptedException, TimeoutException {
+        runManyСonsumersAndProducers(1, 100);
     }
 
     @Test
     void shouldNotBeProblemsWithSeveralConsumersAndProductors() throws InterruptedException, TimeoutException {
-        runManyСonsumersAndProductors(100, 100);
+        runManyСonsumersAndProducers(100, 100);
     }
 
-    void runManyСonsumersAndProductors(int consumersCounter, int productorsCounter) throws InterruptedException, TimeoutException {
+    void runManyСonsumersAndProducers(int consumersCounter, int productorsCounter) throws InterruptedException, TimeoutException {
         final int times = 100;
         final int tasks = 100;
         assert tasks * consumersCounter % productorsCounter == 0;
         for (int i = 0; i < times; ++i) {
-            final Waiter waiter = new Waiter();
-            Thread[] threads = new Thread[consumersCounter + productorsCounter];
+            final var waiter = new Waiter();
+            var threads = new Thread[consumersCounter + productorsCounter];
             for (int c = 0; c < consumersCounter; ++c) {
                 threads[c] = new Thread(() -> {
                     for (int a = 0; a < tasks; ++a) {
@@ -69,10 +69,10 @@ class TaskQueueTest {
                 });
                 threads[c].start();
             }
-            int taskProductor = tasks * consumersCounter / productorsCounter;
+            int taskProducer = tasks * consumersCounter / productorsCounter;
             for (int p = consumersCounter; p < consumersCounter + productorsCounter; ++p) {
                 threads[p] = new Thread(() -> {
-                    for (int a = 0; a < taskProductor; ++a) {
+                    for (int a = 0; a < taskProducer; ++a) {
                         queue.putTask(task1);
                     }
                 });
