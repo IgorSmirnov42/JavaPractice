@@ -33,4 +33,10 @@ class HasherTest {
         assertArrayEquals(MultiThreadHasher.calculateHash(directory + "/aaa"),
                 SingleThreadHasher.calculateHash(directory1 + "/aaa"));
     }
+
+    @Test
+    void shouldBeEqualOnSameFilesWithDifferentNames() {
+        assertArrayEquals(MultiThreadHasher.calculateHash(singleFile),
+                SingleThreadHasher.calculateHash(singleFile + "1"));
+    }
 }
