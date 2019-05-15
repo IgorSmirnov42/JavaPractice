@@ -165,10 +165,14 @@ class ThreadPoolImplTest {
     void reallyNThreads(int n) throws InterruptedException {
         Set<Thread> threads = new HashSet<>();
         var pool = new ThreadPoolImpl(n);
-        for (int i = 0; i < n * 1000; ++i) {
+        for (int i = 0; i < n * 100; ++i) {
             pool.submit((Supplier<Void>) () -> {
                 synchronized (threads) {
                     threads.add(Thread.currentThread());
+                }
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
                 }
                 return null;
             });
