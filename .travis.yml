@@ -8,4 +8,5 @@ env:
   - PROJECT_DIR=190123_trie
   - PROJECT_DIR=190130_treeset
   - PROJECT_DIR=190213_database
+  - PROJECT_DIR=190515_md5
 script: cd $PROJECT_DIR && mvn test
