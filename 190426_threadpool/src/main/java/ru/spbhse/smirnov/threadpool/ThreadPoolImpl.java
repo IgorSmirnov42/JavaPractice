@@ -93,6 +93,7 @@ public class ThreadPoolImpl {
         private Supplier<T> task;
         @Nullable private T result = null;
         private volatile boolean ready = false;
+        private final Object lock = new Object();
 
         /** {@inheritDoc} */
         @Override
@@ -105,9 +106,9 @@ public class ThreadPoolImpl {
         @Nullable
         public T get() throws LightExecutionException, InterruptedException {
             if (!ready) {
-                synchronized (this) {
+                synchronized (lock) {
                     while (!ready) {
-                        wait();
+                        lock.wait();
                     }
                 }
             }
@@ -159,8 +160,8 @@ public class ThreadPoolImpl {
             }
             task = null;
             ready = true;
-            synchronized (this) {
-                notifyAll();
+            synchronized (lock) {
+                lock.notifyAll();
             }
 
             synchronized (tasksToApply) {
