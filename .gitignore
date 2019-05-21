@@ -2,3 +2,6 @@
 */.gradle
 */target
 */TEST.db
+*/build
+*/out
+
