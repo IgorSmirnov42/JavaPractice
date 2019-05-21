@@ -22,18 +22,28 @@ public class Field {
         points.add(new Point2D(100, 300));
         points.add(new Point2D(200, 100));
         points.add(new Point2D(300, 200));
+        points.add(new Point2D(400, 20));
+        points.add(new Point2D(500, 300));
         points.add(new Point2D(600, 70));
-        points.add(new Point2D(800, 190));
+        points.add(new Point2D(700, 200));
+        points.add(new Point2D(800, 100));
+        points.add(new Point2D(800, 20));
         points.add(new Point2D(1000, 230));
     }
 
     public void draw(GraphicsContext context) {
+        var stroke = context.getStroke();
+        var lineWidth = context.getLineWidth();
+
         context.setLineWidth(1);
         context.setStroke(Color.BLACK);
         for (int i = 0; i < points.size() - 1; i++) {
             context.strokeLine(points.get(i).getX(), points.get(i).getY(),
                     points.get(i + 1).getX(), points.get(i + 1).getY());
         }
+
+        context.setStroke(stroke);
+        context.setLineWidth(lineWidth);
     }
 
     private double getYBySegment(@NotNull Point2D left,

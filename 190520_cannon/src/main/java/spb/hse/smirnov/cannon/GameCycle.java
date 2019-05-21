@@ -2,10 +2,10 @@ package spb.hse.smirnov.cannon;
 
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedWriter;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -14,9 +14,10 @@ public class GameCycle {
     @NotNull private Aim aim;
     @NotNull private Player player;
     @NotNull private Field field;
-    @NotNull List<Bullet> bullets = new LinkedList<>();
-    AnimationTimer timer;
+    @NotNull private List<Bullet> bullets = new LinkedList<>();
+    private AnimationTimer timer;
     private static GameCycle instance = null;
+    private boolean gameFinished = false;
 
     public GameCycle(@NotNull GraphicsContext context,
                      @NotNull Field field,
@@ -56,6 +57,15 @@ public class GameCycle {
 
     public void onAimHit() {
         timer.stop();
+        cleanScreen();
+        var textFont = context.getFont();
+        var textAlign = context.getTextAlign();
+        context.setFont(new Font(42));
+        context.setTextAlign(TextAlignment.CENTER);
+        context.strokeText("You won!", Field.WIDTH / 2.0, Field.HEIGHT / 2.0);
+        gameFinished = true;
+        context.setFont(textFont);
+        context.setTextAlign(textAlign);
     }
 
     private void cleanScreen() {
@@ -71,8 +81,13 @@ public class GameCycle {
             if (!bullet.isAlive()) {
                 bulletIterator.remove();
             }
+            if (gameFinished) {
+                break;
+            }
         }
-        player.draw(context);
-        aim.draw(context);
+        if (!gameFinished) {
+            player.draw(context);
+            aim.draw(context);
+        }
     }
 }

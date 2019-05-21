@@ -12,6 +12,12 @@ public class Geometry {
                segment) <= circle.getRadius();
     }
 
+    public static boolean circleIntersectsCircle(@NotNull Circle circle1, @NotNull Circle circle2) {
+        var point1 = new Point2D(circle1.getCenterX(), circle1.getCenterY());
+        var point2 = new Point2D(circle2.getCenterX(), circle2.getCenterY());
+        return point1.distance(point2) <= circle1.getRadius() + circle2.getRadius();
+    }
+
     public static double getNormalAngle(@NotNull Line segment) {
         var pointingVector = getNormalizedPointingVector(segment);
         return Math.atan2(pointingVector.getX(), pointingVector.getY());

@@ -17,7 +17,7 @@ public class Player {
     private KeyCode keyCode = null;
     private static final int SECOND = 1000;
     private static final int MOVE_PIXELS_PER_SECOND = 50;
-    private static final double ROTATION_RADIANS_PER_SECOND = Math.PI / 2;
+    private static final double ROTATION_RADIANS_PER_SECOND = Math.PI / 8;
     private static final double CANNON_WIDTH = 30;
     private static final double CANNON_HEIGHT = 15;
     private static final int BARREL_LENGTH = 20;
@@ -30,8 +30,11 @@ public class Player {
     public void draw(@NotNull GraphicsContext context) {
         updatePosition();
         double y = field.getYByX(x);
-
         double realAngle = getRealAngle();
+
+        var lineWidth = context.getLineWidth();
+        var stroke = context.getStroke();
+
         context.setLineWidth(BARREL_WIDTH);
         context.setStroke(Color.DARKGREEN);
         Point2D barrelEnd = getBarrelEnd(realAngle);
@@ -46,6 +49,9 @@ public class Player {
         line.setEndY(y);
         line = Geometry.rotateLine(line, realAngle - barrelAngle);
         context.strokeLine(line.getStartX(), line.getStartY(), line.getEndX(), line.getEndY());
+
+        context.setLineWidth(lineWidth);
+        context.setStroke(stroke);
     }
 
     private void updatePosition() {
@@ -108,9 +114,9 @@ public class Player {
             double realAngle = getRealAngle();
             GameCycle.getInstance().addBullet(
                     new Bullet(getBarrelEnd(realAngle), realAngle, field));
-        } else if (keyCode.equals(KeyCode.D)) {
+        } else if (code.equals(KeyCode.D)) {
             Bullet.plusSize();
-        } else if (keyCode.equals(KeyCode.A)) {
+        } else if (code.equals(KeyCode.A)) {
             Bullet.minusSize();
         }
         keyCode = null;

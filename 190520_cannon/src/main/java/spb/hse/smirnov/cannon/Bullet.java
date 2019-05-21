@@ -44,7 +44,12 @@ public class Bullet {
     }
 
     public void draw(@NotNull GraphicsContext context) {
-        recalculatePosition();
+        if (recalculatePosition()) {
+            return;
+        }
+
+        var fill = context.getFill();
+
         if (status == BulletStatus.ALIVE) {
             context.setFill(Color.AQUA);
             context.fillOval(x - bullet.size / 2,
@@ -53,20 +58,26 @@ public class Bullet {
                     bullet.size);
         } else {
             context.setFill(Color.MEDIUMVIOLETRED);
-            context.fillOval(x - bullet.size / 2,
-                    y - bullet.size / 2,
+            context.fillOval(x - bullet.hitRadius,
+                    y - bullet.hitRadius,
                     bullet.hitRadius * 2,
                     bullet.hitRadius * 2);
         }
+
+        context.setFill(fill);
     }
 
-    private void recalculatePosition() {
+    /**
+     * Recalculates position of current bullet
+     * @return true if aim was hit
+     */
+    private boolean recalculatePosition() {
         long deltaTime = System.currentTimeMillis() - lastTimeUpdated;
         if (status == BulletStatus.ZOMBIE) {
             if (deltaTime >= ZOMBIE_TIME) {
                 status = BulletStatus.DEAD;
             }
-            return;
+            return false;
         }
         lastTimeUpdated += deltaTime;
         x += xSpeed * deltaTime / SECOND;
@@ -74,21 +85,32 @@ public class Bullet {
         y -= ySpeed * deltaTime / SECOND;
         if (x < 0 || y > Field.HEIGHT || x > Field.WIDTH) {
             status = BulletStatus.DEAD;
+            return false;
         }
-        checkHit();
+        if (checkHit()) {
+            return true;
+        }
+        // not hit and under field
+        if (status != BulletStatus.ZOMBIE && field.getYByX(x) < y) {
+            status = BulletStatus.DEAD;
+        }
+        return false;
     }
 
-    private void checkHit() {
+    private boolean checkHit() {
         if (field.isHit(new Circle(x, y, bullet.size / 2))) {
             status = BulletStatus.ZOMBIE;
             if (hitAim()) {
                 GameCycle.getInstance().onAimHit();
+                return true;
             }
         }
+        return false;
     }
 
     private boolean hitAim() {
-        return false;
+        return Geometry.circleIntersectsCircle(new Circle(x, y, bullet.hitRadius),
+                new Circle(Aim.AIM_POSITION_X, field.getYByX(Aim.AIM_POSITION_X), Aim.AIM_RADIUS));
     }
 
     public static void plusSize() {
