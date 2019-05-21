@@ -4,7 +4,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 
-public class Aim {
+/** Class to represent target in a game*/
+public class Aim implements Drawable {
     public static final double AIM_POSITION_X = 750;
     public static final double AIM_RADIUS = 10;
     @NotNull private Field field;
@@ -13,6 +14,8 @@ public class Aim {
         this.field = field;
     }
 
+    /** {@inheritDoc} */
+    @Override
     public void draw(@NotNull GraphicsContext context) {
         var fill = context.getFill();
 

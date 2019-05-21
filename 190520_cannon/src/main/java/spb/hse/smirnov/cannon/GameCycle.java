@@ -9,20 +9,26 @@ import org.jetbrains.annotations.NotNull;
 import java.util.LinkedList;
 import java.util.List;
 
+/** Class controlling the game cycle
+ * Single-thread single tone
+ */
 public class GameCycle {
     @NotNull private GraphicsContext context;
     @NotNull private Aim aim;
     @NotNull private Player player;
     @NotNull private Field field;
+    /** List of bullets that should be seen by user */
     @NotNull private List<Bullet> bullets = new LinkedList<>();
     private AnimationTimer timer;
     private static GameCycle instance = null;
     private boolean gameFinished = false;
 
-    public GameCycle(@NotNull GraphicsContext context,
-                     @NotNull Field field,
-                     @NotNull Player player,
-                     @NotNull Aim aim) {
+    /**
+     * Creates new instance if there is no created before
+     * @throws IllegalStateException if there is an active instance
+     */
+    public GameCycle(@NotNull GraphicsContext context, @NotNull Field field,
+                     @NotNull Player player, @NotNull Aim aim) {
         if (instance != null) {
             throw new IllegalStateException("Cannot create second instance of GameCycle");
         }
@@ -33,6 +39,10 @@ public class GameCycle {
         instance = this;
     }
 
+    /**
+     * Returns current instance
+     * @throws IllegalStateException if no instance was created
+     */
     @NotNull
     public static GameCycle getInstance() {
         if (instance == null) {
@@ -41,6 +51,7 @@ public class GameCycle {
         return instance;
     }
 
+    /** Starts game cycle */
     public void startGame() {
         timer = new AnimationTimer() {
             @Override
@@ -51,10 +62,12 @@ public class GameCycle {
         timer.start();
     }
 
+    /** Adds bullet to list of active bullets */
     public void addBullet(@NotNull Bullet bullet) {
         bullets.add(bullet);
     }
 
+    /** Reacts on hitting an aim (shows congratulations screen, stops timer) */
     public void onAimHit() {
         timer.stop();
         cleanScreen();
@@ -68,10 +81,12 @@ public class GameCycle {
         context.setTextAlign(textAlign);
     }
 
+    /** Clears everything printed on a screen */
     private void cleanScreen() {
         context.clearRect(0, 0, Field.WIDTH, Field.HEIGHT);
     }
 
+    /** Draws all active objects */
     private void drawAll() {
         cleanScreen();
         field.draw(context);

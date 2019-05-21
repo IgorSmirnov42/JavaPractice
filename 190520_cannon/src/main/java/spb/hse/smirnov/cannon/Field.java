@@ -10,14 +10,16 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Field {
-
+/** Class with methods to work with game field */
+public class Field implements Drawable {
     public static final int WIDTH = 1000;
     public static final int HEIGHT = 400;
 
+    /** Edges of mountains sorted by x */
     private static List<Point2D> points = new ArrayList<>();
 
     static {
+        // Creating hardcoded field
         points.add(new Point2D(0, 0));
         points.add(new Point2D(100, 300));
         points.add(new Point2D(200, 100));
@@ -31,7 +33,9 @@ public class Field {
         points.add(new Point2D(1000, 230));
     }
 
-    public void draw(GraphicsContext context) {
+    /** {@inheritDoc} */
+    @Override
+    public void draw(@NotNull GraphicsContext context) {
         var stroke = context.getStroke();
         var lineWidth = context.getLineWidth();
 
@@ -46,9 +50,14 @@ public class Field {
         context.setLineWidth(lineWidth);
     }
 
-    private double getYBySegment(@NotNull Point2D left,
-                                 @NotNull Point2D right, double x) {
-        assert left.getX() <= x && x <= right.getX();
+    /**
+     * Returns y-coordinate on segment left-right by x coordinate
+     * @throws IllegalArgumentException if x was not from given segment
+     */
+    private double getYBySegment(@NotNull Point2D left, @NotNull Point2D right, double x) {
+        if (!(left.getX() <= x && x <= right.getX())) {
+            throw new IllegalArgumentException("x is not in given segment");
+        }
 
         double deltaX = right.getX() - left.getX();
         double deltaY = right.getY() - left.getY();
@@ -56,6 +65,10 @@ public class Field {
         return left.getY() + proportion * deltaY;
     }
 
+    /**
+     * Returns y-coordinate of point on a field by x-coordinate
+     * @throws IllegalArgumentException if x is not presented on field
+     */
     public double getYByX(double x) {
         for (int i = 1; i < points.size(); i++) {
             if (x <= points.get(i).getX()) {
@@ -65,6 +78,7 @@ public class Field {
         throw new IllegalArgumentException("Segment was not found");
     }
 
+    /** Checks if bullet presented as circle intersects some border */
     public boolean isHit(@NotNull Circle circle) {
         for (int i = 1; i < points.size(); i++) {
             if (Geometry.circleIntersectsSegment(circle,
@@ -78,6 +92,10 @@ public class Field {
         return false;
     }
 
+    /**
+     * Returns angle of cannon that depends of line angle that cannon stands on.
+     * @throws IllegalArgumentException if cannon is somehow out of field
+     */
     public double getCannonAngle(double x) {
         for (int i = 1; i < points.size(); i++) {
             if (x <= points.get(i).getX()) {

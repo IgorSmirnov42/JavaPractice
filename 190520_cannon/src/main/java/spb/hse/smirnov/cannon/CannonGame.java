@@ -1,31 +1,25 @@
 package spb.hse.smirnov.cannon;
 
-import gherkin.lexer.Fi;
 import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.event.EventHandler;
-import javafx.geometry.HPos;
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.RowConstraints;
-import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
 
-
+/**
+ * Simple implementation of Scorched Earth (video game)
+ * https://en.wikipedia.org/wiki/Scorched_Earth_(video_game)
+ * To shoot press ENTER
+ * To move cannon press LEFT or RIGHT
+ * To move cannon's barrel press UP or DOWN
+ * To change bullet's size press A or D
+ */
 public class CannonGame extends Application {
 
+    /** Starts game, initializing player, aim and field */
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(@NotNull Stage primaryStage) {
         var pane = new Pane();
         var canvas = new Canvas(Field.WIDTH, Field.HEIGHT);
         var context = canvas.getGraphicsContext2D();

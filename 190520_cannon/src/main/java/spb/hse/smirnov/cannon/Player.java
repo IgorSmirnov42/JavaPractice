@@ -7,7 +7,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import org.jetbrains.annotations.NotNull;
 
-public class Player {
+/** Player's controller. Draws cannon, reacts on pressing buttons */
+public class Player implements Drawable {
     private double barrelAngle = 0;
     private static final double MIN_BARREL_ANGLE = -Math.PI / 4;
     private static final double MAX_BARREL_ANGLE = Math.PI / 4;
@@ -27,6 +28,8 @@ public class Player {
         this.field = field;
     }
 
+    /** {@inheritDoc} */
+    @Override
     public void draw(@NotNull GraphicsContext context) {
         updatePosition();
         double y = field.getYByX(x);
@@ -54,6 +57,7 @@ public class Player {
         context.setStroke(stroke);
     }
 
+    /** Updates cannon position depending on last pressed button */
     private void updatePosition() {
         if (keyCode == null) {
             return;
@@ -73,6 +77,10 @@ public class Player {
         }
     }
 
+    /**
+     * Updates barrel angle
+     * @param signedDeltaTime negative if moving clockwise and positive otherwise
+     */
     private void updateBarrelAngle(long signedDeltaTime) {
         barrelAngle += (double) signedDeltaTime / SECOND * ROTATION_RADIANS_PER_SECOND;
         if (barrelAngle < MIN_BARREL_ANGLE) {
@@ -83,6 +91,10 @@ public class Player {
         }
     }
 
+    /**
+     * Updates cannon x-coordinate
+     * @param signedDeltaTime positive if moving left and negative otherwise
+     */
     private void updateX(long signedDeltaTime) {
         x -= (double) signedDeltaTime / SECOND * MOVE_PIXELS_PER_SECOND;
         if (x < 0) {
@@ -93,11 +105,18 @@ public class Player {
         }
     }
 
+    /** Returns point where barrel ends depending on it's angle and position */
     private Point2D getBarrelEnd(double realAngle) {
         return new Point2D(x + Math.cos(realAngle) * BARREL_LENGTH,
                 field.getYByX(x) - Math.sin(realAngle) * BARREL_LENGTH);
     }
 
+    /** Returns angle of barrel depending on it's position */
+    private double getRealAngle() {
+        return barrelAngle + field.getCannonAngle(x);
+    }
+
+    /** Reacts on pressed key */
     public void onKeyPressed(@NotNull KeyCode code) {
         if (!code.equals(keyCode)) {
             keyCode = code;
@@ -105,10 +124,7 @@ public class Player {
         }
     }
 
-    private double getRealAngle() {
-        return barrelAngle + field.getCannonAngle(x);
-    }
-
+    /** Reacts on released key */
     public void onKeyReleased(@NotNull KeyCode code) {
         if (code.equals(KeyCode.ENTER)) {
             double realAngle = getRealAngle();
