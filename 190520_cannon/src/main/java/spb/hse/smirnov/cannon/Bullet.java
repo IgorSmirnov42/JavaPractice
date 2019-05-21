@@ -2,6 +2,8 @@ package spb.hse.smirnov.cannon;
 
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -9,8 +11,9 @@ import java.util.List;
 
 public class Bullet {
     private static int index = 1;
-    private static final List<BulletType> types = new ArrayList<>();
-    private BulletType bullet;
+    @NotNull private static final List<BulletType> types = new ArrayList<>();
+    private static final long ZOMBIE_TIME = 500;
+    @NotNull private BulletType bullet;
     private static final double GRAVITY = 100;
     private static final int SECOND = 1000;
     private long lastTimeUpdated = System.currentTimeMillis();
@@ -18,36 +21,74 @@ public class Bullet {
     private double y;
     private double xSpeed;
     private double ySpeed;
+    private BulletStatus status = BulletStatus.ALIVE;
+    @NotNull private Field field;
 
     static {
-        types.add(new BulletType(10, 7, 250));
-        types.add(new BulletType(12.5, 12, 175));
-        types.add(new BulletType(15, 20, 100));
+        types.add(new BulletType(7, 3.5, 250));
+        types.add(new BulletType(9.5, 6, 175));
+        types.add(new BulletType(12, 20, 100));
     }
 
-    public Bullet(Point2D point, double angle) {
-        System.out.println("SIZE IS " + index);
+    public Bullet(@NotNull Point2D point, double angle, @NotNull Field field) {
         this.x = point.getX();
         this.y = point.getY();
+        this.field = field;
         bullet = types.get(index);
         xSpeed = Math.cos(angle) * bullet.startSpeed;
         ySpeed = Math.sin(angle) * bullet.startSpeed;
     }
 
+    public boolean isAlive() {
+        return status != BulletStatus.DEAD;
+    }
+
     public void draw(@NotNull GraphicsContext context) {
         recalculatePosition();
-        context.fillOval(x - bullet.size / 2,
-                           y - bullet.size / 2,
-                              bullet.size,
-                              bullet.size);
+        if (status == BulletStatus.ALIVE) {
+            context.setFill(Color.AQUA);
+            context.fillOval(x - bullet.size / 2,
+                    y - bullet.size / 2,
+                    bullet.size,
+                    bullet.size);
+        } else {
+            context.setFill(Color.MEDIUMVIOLETRED);
+            context.fillOval(x - bullet.size / 2,
+                    y - bullet.size / 2,
+                    bullet.hitRadius * 2,
+                    bullet.hitRadius * 2);
+        }
     }
 
     private void recalculatePosition() {
         long deltaTime = System.currentTimeMillis() - lastTimeUpdated;
+        if (status == BulletStatus.ZOMBIE) {
+            if (deltaTime >= ZOMBIE_TIME) {
+                status = BulletStatus.DEAD;
+            }
+            return;
+        }
         lastTimeUpdated += deltaTime;
         x += xSpeed * deltaTime / SECOND;
         ySpeed -= GRAVITY * deltaTime / SECOND;
         y -= ySpeed * deltaTime / SECOND;
+        if (x < 0 || y > Field.HEIGHT || x > Field.WIDTH) {
+            status = BulletStatus.DEAD;
+        }
+        checkHit();
+    }
+
+    private void checkHit() {
+        if (field.isHit(new Circle(x, y, bullet.size / 2))) {
+            status = BulletStatus.ZOMBIE;
+            if (hitAim()) {
+                GameCycle.getInstance().onAimHit();
+            }
+        }
+    }
+
+    private boolean hitAim() {
+        return false;
     }
 
     public static void plusSize() {

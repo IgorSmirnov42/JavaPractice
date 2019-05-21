@@ -3,6 +3,8 @@ package spb.hse.smirnov.cannon;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -23,7 +25,6 @@ public class Field {
         points.add(new Point2D(600, 70));
         points.add(new Point2D(800, 190));
         points.add(new Point2D(1000, 230));
-
     }
 
     public void draw(GraphicsContext context) {
@@ -49,6 +50,31 @@ public class Field {
         for (int i = 1; i < points.size(); i++) {
             if (x <= points.get(i).getX()) {
                 return getYBySegment(points.get(i - 1), points.get(i), x);
+            }
+        }
+        throw new IllegalArgumentException("Segment was not found");
+    }
+
+    public boolean isHit(@NotNull Circle circle) {
+        for (int i = 1; i < points.size(); i++) {
+            if (Geometry.circleIntersectsSegment(circle,
+                    new Line(points.get(i - 1).getX(),
+                             points.get(i - 1).getY(),
+                             points.get(i).getX(),
+                             points.get(i).getY()))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public double getCannonAngle(double x) {
+        for (int i = 1; i < points.size(); i++) {
+            if (x <= points.get(i).getX()) {
+                return Geometry.getNormalAngle(new Line(points.get(i - 1).getX(),
+                                                        points.get(i - 1).getY(),
+                                                        points.get(i).getX(),
+                                                        points.get(i).getY()));
             }
         }
         throw new IllegalArgumentException("Segment was not found");

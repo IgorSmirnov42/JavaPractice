@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedWriter;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class GameCycle {
@@ -13,7 +14,7 @@ public class GameCycle {
     @NotNull private Aim aim;
     @NotNull private Player player;
     @NotNull private Field field;
-    @NotNull List<Bullet> bullets = new ArrayList<>();
+    @NotNull List<Bullet> bullets = new LinkedList<>();
     AnimationTimer timer;
     private static GameCycle instance = null;
 
@@ -64,10 +65,14 @@ public class GameCycle {
     private void drawAll() {
         cleanScreen();
         field.draw(context);
+        for (var bulletIterator = bullets.iterator(); bulletIterator.hasNext();) {
+            var bullet = bulletIterator.next();
+            bullet.draw(context);
+            if (!bullet.isAlive()) {
+                bulletIterator.remove();
+            }
+        }
         player.draw(context);
         aim.draw(context);
-        for (var bullet : bullets) {
-            bullet.draw(context);
-        }
     }
 }

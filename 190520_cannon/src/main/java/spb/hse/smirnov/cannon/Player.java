@@ -4,10 +4,13 @@ import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import org.jetbrains.annotations.NotNull;
 
 public class Player {
-    private double barrelAngle = Math.PI / 2;
+    private double barrelAngle = 0;
+    private static final double MIN_BARREL_ANGLE = -Math.PI / 4;
+    private static final double MAX_BARREL_ANGLE = Math.PI / 4;
     private Field field;
     private double x = 250;
     private long lastTimeUpdated;
@@ -15,10 +18,10 @@ public class Player {
     private static final int SECOND = 1000;
     private static final int MOVE_PIXELS_PER_SECOND = 50;
     private static final double ROTATION_RADIANS_PER_SECOND = Math.PI / 2;
-    private static final double PLAYER_WIDTH = 30;
-    private static final double PLAYER_HEIGHT = 30;
+    private static final double CANNON_WIDTH = 30;
+    private static final double CANNON_HEIGHT = 15;
     private static final int BARREL_LENGTH = 20;
-    private static final int BARREL_WIDTH = 8;
+    private static final int BARREL_WIDTH = 10;
 
     public Player(@NotNull Field field) {
         this.field = field;
@@ -28,16 +31,21 @@ public class Player {
         updatePosition();
         double y = field.getYByX(x);
 
+        double realAngle = getRealAngle();
         context.setLineWidth(BARREL_WIDTH);
         context.setStroke(Color.DARKGREEN);
-        Point2D barrelEnd = getBarrelEnd();
+        Point2D barrelEnd = getBarrelEnd(realAngle);
         context.strokeLine(x, y, barrelEnd.getX(), barrelEnd.getY());
 
-
-        context.setFill(Color.FIREBRICK);
-        context.fillOval(x - PLAYER_WIDTH / 2,
-                y - PLAYER_HEIGHT / 2,
-                PLAYER_WIDTH, PLAYER_HEIGHT);
+        context.setStroke(Color.FIREBRICK);
+        context.setLineWidth(CANNON_HEIGHT);
+        var line = new Line();
+        line.setStartX(x - CANNON_WIDTH / 2);
+        line.setEndX(x + CANNON_WIDTH / 2);
+        line.setStartY(y);
+        line.setEndY(y);
+        line = Geometry.rotateLine(line, realAngle - barrelAngle);
+        context.strokeLine(line.getStartX(), line.getStartY(), line.getEndX(), line.getEndY());
     }
 
     private void updatePosition() {
@@ -61,6 +69,12 @@ public class Player {
 
     private void updateBarrelAngle(long signedDeltaTime) {
         barrelAngle += (double) signedDeltaTime / SECOND * ROTATION_RADIANS_PER_SECOND;
+        if (barrelAngle < MIN_BARREL_ANGLE) {
+            barrelAngle = MIN_BARREL_ANGLE;
+        }
+        if (barrelAngle > MAX_BARREL_ANGLE) {
+            barrelAngle = MAX_BARREL_ANGLE;
+        }
     }
 
     private void updateX(long signedDeltaTime) {
@@ -73,9 +87,9 @@ public class Player {
         }
     }
 
-    private Point2D getBarrelEnd() {
-        return new Point2D(x + Math.cos(barrelAngle) * BARREL_LENGTH,
-                field.getYByX(x) - Math.sin(barrelAngle) * BARREL_LENGTH);
+    private Point2D getBarrelEnd(double realAngle) {
+        return new Point2D(x + Math.cos(realAngle) * BARREL_LENGTH,
+                field.getYByX(x) - Math.sin(realAngle) * BARREL_LENGTH);
     }
 
     public void onKeyPressed(@NotNull KeyCode code) {
@@ -85,10 +99,15 @@ public class Player {
         }
     }
 
+    private double getRealAngle() {
+        return barrelAngle + field.getCannonAngle(x);
+    }
+
     public void onKeyReleased(@NotNull KeyCode code) {
         if (code.equals(KeyCode.ENTER)) {
+            double realAngle = getRealAngle();
             GameCycle.getInstance().addBullet(
-                    new Bullet(getBarrelEnd(), barrelAngle));
+                    new Bullet(getBarrelEnd(realAngle), realAngle, field));
         } else if (keyCode.equals(KeyCode.D)) {
             Bullet.plusSize();
         } else if (keyCode.equals(KeyCode.A)) {
