@@ -25,4 +25,27 @@ class FieldTest {
         }
     }
 
+    @Test
+    void shouldShoot() {
+        var field = new Field(2);
+        field.hit(0, 0);
+        assertEquals(CellStatus.OPEN, field.getStatus(0, 0));
+    }
+
+    @Test
+    void shouldKill() {
+        var field = new Field(2);
+        int ff = field.getNumber(0, 0);
+        field.hit(0, 0);
+        for (int i = 0; i < 2; ++i) {
+            for (int j = 0; j < 2; ++j) {
+                if (i != 0 || j != 0) {
+                    if (field.getNumber(i, j) == ff) {
+                        field.hit(351 * i, 351 * j);
+                    }
+                }
+            }
+        }
+        assertEquals(CellStatus.FOREVER_OPEN, field.getStatus(0, 0));
+    }
 }
