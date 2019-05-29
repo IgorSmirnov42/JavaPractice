@@ -1,4 +1,5 @@
-/* I don't use Notnull because i have problems with internet now */
+/* I don't use Notnull because i have problems with internet now.
+* Such a bad work because half of the time i was fixing this...*/
 package spb.hse.smirnov.findpair;
 
 import javafx.application.Application;
