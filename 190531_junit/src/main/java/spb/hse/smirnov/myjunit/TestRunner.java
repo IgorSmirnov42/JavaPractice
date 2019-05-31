@@ -28,6 +28,11 @@ public class TestRunner {
     public static final String NO_IGNORE = "TestRunner.NO_IGNORE";
     @NotNull private List<TestClass> testClasses = new ArrayList<>();
 
+    // for testing
+    List<TestClass> getTestClasses() {
+        return testClasses;
+    }
+
     /**
      * Runs all tests from file in .class file or all tests from .jar file
      * Counts total result and prints in to stdout
@@ -143,7 +148,7 @@ public class TestRunner {
      * Saves information about class to {@code testClasses}
      * @throws DefaultConstructorException if class doesn't have constructor without parameters
      */
-    private void addTestClass(@NotNull Class<?> clazz) throws DefaultConstructorException, WrongAnnotationException {
+    void addTestClass(@NotNull Class<?> clazz) throws DefaultConstructorException, WrongAnnotationException {
         if (!isTestClass(clazz)) {
             return;
         }
@@ -181,7 +186,8 @@ public class TestRunner {
     }
 
     /** Checks that all annotated methods in class doesn't take any parameters */
-    private boolean hasWrongAnnotatedMethods(@NotNull Class<?> clazz) {
+    // Package-private for testing
+    boolean hasWrongAnnotatedMethods(@NotNull Class<?> clazz) {
         return Arrays.stream(clazz.getDeclaredMethods()).parallel()
                 .filter(method -> method.isAnnotationPresent(Test.class)
                         || method.isAnnotationPresent(Before.class)
@@ -192,7 +198,8 @@ public class TestRunner {
     }
 
     /** Checks if there is @Test annotated method in class */
-    private boolean isTestClass(@NotNull Class<?> clazz) {
+    // Package-private for testing
+    boolean isTestClass(@NotNull Class<?> clazz) {
         return Arrays.stream(clazz.getDeclaredMethods()).parallel()
                 .anyMatch(method -> method.isAnnotationPresent(Test.class));
     }
@@ -203,7 +210,8 @@ public class TestRunner {
      * @throws ExecutionException if during execution of preparing methods some exception was thrown
      * @throws RunningTestsException if during execution of preparing methods some exception was thrown
      */
-    private Map<Class<?>, List<RunTestResult>> runTests() throws ExecutionException, InterruptedException, RunningTestsException {
+    // Package-private for testing
+    Map<Class<?>, List<RunTestResult>> runTests() throws ExecutionException, InterruptedException, RunningTestsException {
         var resultingMap = new HashMap<Class<?>, List<RunTestResult>>();
         int nThreads = Runtime.getRuntime().availableProcessors();
         var threadPool = Executors.newFixedThreadPool(nThreads);
@@ -255,7 +263,7 @@ public class TestRunner {
                        } catch (Throwable e) {
                            var cause = e.getCause();
                            var expected = test.getAnnotation(Test.class).expected();
-                           if (!expected.isInstance(cause.getClass())) {
+                           if (!expected.isInstance(cause)) {
                                result = new TaskResult(ExecutionResult.FAILED, cause.getMessage());
                            }
                        }
@@ -287,6 +295,7 @@ public class TestRunner {
             }
             resultingMap.put(testClass.clazz, resultingList);
         }
+        testClasses.clear();
         threadPool.shutdown();
         return resultingMap;
     }
@@ -331,9 +340,14 @@ public class TestRunner {
     }
 
     /** Stores result of concrete run with method's name */
-    private static class RunTestResult {
+    // package-private for testing
+    static class RunTestResult {
         @NotNull private String methodName;
         @NotNull private TaskResult taskResult;
+
+        TaskResult getTaskResult() {
+            return taskResult;
+        }
 
         private RunTestResult(@NotNull String methodName, @NotNull TaskResult taskResult) {
             this.methodName = methodName;
@@ -347,21 +361,13 @@ public class TestRunner {
      * If result is {@code FAILED} message field stores error message
      * If result is {@code IGNORED} message field stores reason why the test is disabled
      */
-    private static class TaskResult {
+    // package-private for testing
+    static class TaskResult {
         @NotNull private ExecutionResult result;
         @Nullable private String message;
 
-        /** Compares only by result */
-        @Override
-        public boolean equals(Object other) {
-            if (this == other) {
-                return true;
-            }
-            if (other == null || getClass() != other.getClass()) {
-                return false;
-            }
-            TaskResult that = (TaskResult) other;
-            return result == that.result;
+        ExecutionResult getResult() {
+            return result;
         }
 
         private TaskResult(@NotNull ExecutionResult result, @Nullable String message) {
@@ -371,7 +377,8 @@ public class TestRunner {
     }
 
     /** Result of execution of a test */
-    private enum ExecutionResult {
+    // package-private for testing
+    enum ExecutionResult {
         SUCCESS,
         IGNORED,
         FAILED
