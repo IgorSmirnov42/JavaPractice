@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -14,18 +15,32 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
+/**
+ * Runs tests from .class or .jar file path to which received as a parameter
+ * Tests in file should be annotated with @Test annotations,
+ *      helping methods with @BeforeClass, @Before, @After, @AfterClass
+ * Testing class(es) must have constructor without parameters
+ */
 public class TestRunner {
-
     public static final String NO_IGNORE = "TestRunner.NO_IGNORE";
     @NotNull private List<TestClass> testClasses = new ArrayList<>();
 
-    public static void main(@NotNull String[] args) throws InterruptedException, MalformedURLException, ClassNotFoundException {
+    /**
+     * Runs all tests from file in .class file or all tests from .jar file
+     * Counts total result and prints in to stdout
+     * Result by methods will be printed only after execution of all tests, so if there is an infinite
+     *      loop in some test, no result will be shown at all
+     */
+    public static void main(@NotNull String[] args) throws InterruptedException, IOException, ClassNotFoundException {
         if (args.length != 1) {
             throw new IllegalArgumentException("Should take one and only one argument: path");
         }
         var runner = new TestRunner();
         String path = args[0];
+        System.out.println(path);
         var file = new File(path);
         if (!file.exists()) {
             throw new IllegalArgumentException("Path does not exist");
@@ -97,21 +112,37 @@ public class TestRunner {
                 ok + ", Failed: " + failed + ", Ignored: " + ignored);
     }
 
+    /** Loads all classes from .jar file and collects them to list */
     @NotNull
-    private static List<Class<?>> loadClassesFromJar(@NotNull File jarFile) {
-        // TODO
-        return null;
+    private static List<Class<?>> loadClassesFromJar(@NotNull File jarFilePath) throws IOException, ClassNotFoundException {
+        var list = new ArrayList<Class<?>>();
+        JarFile jarFile = new JarFile(jarFilePath.getPath());
+        Enumeration<JarEntry> e = jarFile.entries();
+        URLClassLoader classLoader = new URLClassLoader(new URL[]{jarFilePath.toURI().toURL()});
+        while (e.hasMoreElements()) {
+            JarEntry entry = e.nextElement();
+            if(entry.isDirectory() || !entry.getName().endsWith(".class")){
+                continue;
+            }
+            String className = entry.getName().substring(0, entry.getName().length() - ".class".length());
+            list.add(classLoader.loadClass(className));
+        }
+        return list;
     }
 
+    /** Loads class from .class file */
     @NotNull
     private static Class<?> loadClass(@NotNull File classFile) throws MalformedURLException, ClassNotFoundException {
-        //System.out.println(classFile.getName().substring(0, classFile.getName().length() - ".class".length()));
-        System.out.println(classFile.toPath().getParent().toUri().toURL());
-        var classLoader = URLClassLoader.newInstance(new URL[]{classFile.toPath().getParent().toUri().toURL()});
+        var classLoader = new URLClassLoader(new URL[]{classFile.toPath().getParent().toUri().toURL()});
         return classLoader.loadClass(classFile.getName()
                 .substring(0, classFile.getName().length() - ".class".length()));
     }
 
+    /**
+     * Checks if class has @Test annotated methods and all annotated methods doesn't take any parameters
+     * Saves information about class to {@code testClasses}
+     * @throws DefaultConstructorException if class doesn't have constructor without parameters
+     */
     private void addTestClass(@NotNull Class<?> clazz) throws DefaultConstructorException, WrongAnnotationException {
         if (!isTestClass(clazz)) {
             return;
@@ -149,6 +180,7 @@ public class TestRunner {
         testClasses.add(testClass);
     }
 
+    /** Checks that all annotated methods in class doesn't take any parameters */
     private boolean hasWrongAnnotatedMethods(@NotNull Class<?> clazz) {
         return Arrays.stream(clazz.getDeclaredMethods()).parallel()
                 .filter(method -> method.isAnnotationPresent(Test.class)
@@ -159,11 +191,18 @@ public class TestRunner {
                 .anyMatch(method -> method.getParameterCount() != 0);
     }
 
+    /** Checks if there is @Test annotated method in class */
     private boolean isTestClass(@NotNull Class<?> clazz) {
         return Arrays.stream(clazz.getDeclaredMethods()).parallel()
                 .anyMatch(method -> method.isAnnotationPresent(Test.class));
     }
 
+    /**
+     * Runs all test parallel.
+     * Each class is processed after previous
+     * @throws ExecutionException if during execution of preparing methods some exception was thrown
+     * @throws RunningTestsException if during execution of preparing methods some exception was thrown
+     */
     private Map<Class<?>, List<RunTestResult>> runTests() throws ExecutionException, InterruptedException, RunningTestsException {
         var resultingMap = new HashMap<Class<?>, List<RunTestResult>>();
         int nThreads = Runtime.getRuntime().availableProcessors();
@@ -252,6 +291,10 @@ public class TestRunner {
         return resultingMap;
     }
 
+    /**
+     * Runs methods annotated with @BeforeClass, @Before, @After or @AfterClass.
+     * @throws RunningTestsException if invocation was interrupted with some throwable
+     */
     private void runPreparingMethods(@NotNull List<Method> methods,
                                      @NotNull String annotationName,
                                      @NotNull Object instance,
@@ -269,6 +312,7 @@ public class TestRunner {
         }
     }
 
+    /** Stores all information about methods in class that is needed by test runner */
     private static class TestClass {
         @NotNull private List<Method> beforeClassMethods = new ArrayList<>();
         @NotNull private List<Method> beforeTestMethods = new ArrayList<>();
@@ -286,6 +330,7 @@ public class TestRunner {
         }
     }
 
+    /** Stores result of concrete run with method's name */
     private static class RunTestResult {
         @NotNull private String methodName;
         @NotNull private TaskResult taskResult;
@@ -296,10 +341,17 @@ public class TestRunner {
         }
     }
 
+    /**
+     * Stores result of a task
+     * If result is {@code SUCCESS} message field stores time
+     * If result is {@code FAILED} message field stores error message
+     * If result is {@code IGNORED} message field stores reason why the test is disabled
+     */
     private static class TaskResult {
         @NotNull private ExecutionResult result;
         @Nullable private String message;
 
+        /** Compares only by result */
         @Override
         public boolean equals(Object other) {
             if (this == other) {
@@ -318,6 +370,7 @@ public class TestRunner {
         }
     }
 
+    /** Result of execution of a test */
     private enum ExecutionResult {
         SUCCESS,
         IGNORED,
