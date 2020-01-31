@@ -1,3 +1,7 @@
 */*/workspace.xml
+*/.gradle
 */target
 */TEST.db
+*/build
+*/out
+
